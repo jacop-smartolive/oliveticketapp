@@ -3,11 +3,8 @@
  */
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Check, Bell, X } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { ChevronLeft, ChevronRight, Bell, X } from "lucide-react";
 import { colors, fontFamily, spacing, radius, headerTitleBase } from "../shared/tokens";
-import QrIcon from "../../imports/QrIcon";
-import img from "figma:asset/5af74d6eee4a267ca2ecf406c0973d3b9d4fe038.png";
 import barcodeImg from "../../assets/barcode.png";
 import qrcodeImg from "../../assets/qrcode.png";
 import cuLogo from "../../assets/brands/cu.png";
@@ -34,6 +31,7 @@ export default function OldVersionQrPaymentPage({
   const [corporateChecked, setCorporateChecked] = useState(true);
   const [oliveChecked, setOliveChecked] = useState(false);
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
+  const [showBarcodeFullscreen, setShowBarcodeFullscreen] = useState(false);
 
   // Timer countdown
   useEffect(() => {
@@ -108,8 +106,8 @@ export default function OldVersionQrPaymentPage({
         <div style={s.qrCard}>
           {/* 프랜차이즈: 바코드 + QR */}
           {isFranchise && (
-            <div style={s.barcodeArea}>
-              <img src={barcodeImg} alt="barcode" style={{ width: "100%", height: "auto" }} />
+            <div style={s.barcodeArea} onClick={() => setShowBarcodeFullscreen(true)}>
+              <img src={barcodeImg} alt="barcode" style={{ width: "100%", height: "auto", cursor: "pointer" }} />
             </div>
           )}
 
@@ -258,6 +256,21 @@ export default function OldVersionQrPaymentPage({
         </div>
       )}
 
+      {/* ── 바코드 전체화면 ── */}
+      {showBarcodeFullscreen && (
+        <div style={s.barcodeFullOverlay} onClick={() => setShowBarcodeFullscreen(false)}>
+          <div style={s.barcodeFullCenter}>
+            <span style={s.barcodeFullNumber}>2810 0602 5142 8541 3258 1532</span>
+            <div style={s.barcodeFullCard}>
+              <img src={barcodeImg} alt="barcode" style={s.barcodeFullImg} />
+            </div>
+          </div>
+          <button style={s.barcodeFullClose} onClick={() => setShowBarcodeFullscreen(false)}>
+            <X size={24} strokeWidth={2} color="#fff" />
+          </button>
+        </div>
+      )}
+
       {/* ── 결제완료 팝업 ── */}
       {showPaymentPopup && (
         <OldPaymentCompletePopup
@@ -269,88 +282,69 @@ export default function OldVersionQrPaymentPage({
   );
 }
 
-// ─── Payment Complete Popup ──────────────────────────────────
+// ─── Payment Complete Popup (결제내역 상세 팝업과 동일 스타일) ──────
 function OldPaymentCompletePopup({ onClose, type }: { onClose: () => void; type: PaymentTab }) {
-  const { t } = useTranslation();
-  const [slideIn, setSlideIn] = useState(false);
+  const isFranchise = type === "franchise";
+  const storeName = isFranchise ? "CU 판교점" : "본사 구내식당";
+  const amount = isFranchise ? "7,500" : "4,700";
+  const paymentNo = isFranchise ? "7775024071900055" : "4357394287500012";
 
-  useEffect(() => {
-    requestAnimationFrame(() => setSlideIn(true));
-  }, []);
-
-  const handleClose = () => {
-    setSlideIn(false);
-    setTimeout(onClose, 300);
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(paymentNo);
   };
 
   return (
-    <div
-      style={{
-        ...popupStyles.overlay,
-        opacity: slideIn ? 1 : 0,
-      }}
-      onClick={handleClose}
-    >
-      <div
-        style={{
-          ...popupStyles.sheet,
-          transform: slideIn ? "translateY(0)" : "translateY(100%)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* ── Header ── */}
-        <div style={popupStyles.sheetHeader}>
-          <span style={popupStyles.sheetTitle}>{t("qrPay.paymentComplete")}</span>
-          <button onClick={handleClose} style={popupStyles.closeBtn}>
-            <X size={18} strokeWidth={2.5} color="#888" />
+    <div style={popupStyles.overlay} onClick={onClose}>
+      <div style={popupStyles.popup} onClick={(e) => e.stopPropagation()}>
+        {/* 빨간 헤더 */}
+        <div style={popupStyles.popupHeader}>
+          <span style={popupStyles.popupHeaderText}>결제완료</span>
+        </div>
+
+        {/* 본문 */}
+        <div style={popupStyles.popupBody}>
+          {/* 결제유형 + 날짜 */}
+          <span style={popupStyles.popupDate}>혼자결제 | 2024.07.19 12:00</span>
+
+          {/* 금액 카드 */}
+          <div style={popupStyles.popupAmountCard}>
+            <span style={popupStyles.popupAmount}>{amount}</span>
+          </div>
+
+          {/* 가맹점 카드 */}
+          <div style={popupStyles.popupStoreCard}>
+            <span style={popupStyles.popupStoreName}>{storeName}</span>
+            <div style={popupStyles.popupPaymentNo}>
+              <span style={popupStyles.popupPaymentNoText}>결제번호 {paymentNo}</span>
+              <button style={popupStyles.popupCopyBtn} onClick={handleCopy}>복사</button>
+            </div>
+          </div>
+
+          {/* 점선 구분 */}
+          <div style={popupStyles.popupDashed} />
+
+          {/* 닫기 버튼 */}
+          <button style={popupStyles.popupCloseBtn} onClick={onClose}>
+            닫기
           </button>
         </div>
-
-        {/* ── Amount Row ── */}
-        <div style={popupStyles.amountRow}>
-          <span style={popupStyles.amountValue}>{type === "franchise" ? "7,500" : "4,700"}</span>
-          {type === "cafeteria" && (
-            <button onClick={handleClose} style={popupStyles.additionalPayBtn}>
-              <div style={{ width: 16, height: 13, flexShrink: 0 }}>
-                <QrIcon />
-              </div>
-              {t("qrPay.additionalPay")}
-            </button>
-          )}
-        </div>
-
-        {/* ── Detail Rows ── */}
-        <div style={popupStyles.detailSection}>
-          <div style={popupStyles.detailRow}>
-            <span style={popupStyles.detailLabel}>{t("qrPay.paymentDate")}</span>
-            <span style={popupStyles.detailValue}>2023.09.06 11:13</span>
-          </div>
-          <div style={popupStyles.detailRow}>
-            <span style={popupStyles.detailLabel}>{t("qrPay.paymentNumber")}</span>
-            <span style={popupStyles.detailValue}>{type === "franchise" ? "98271635402" : "43573942875"}</span>
-          </div>
-          <div style={popupStyles.detailRow}>
-            <span style={popupStyles.detailLabel}>{t("qrPay.paymentPlace")}</span>
-            <span style={popupStyles.detailValue}>{type === "franchise" ? "CU 판교점" : t("qrPay.cafeteriaName")}</span>
-          </div>
-        </div>
-
-        {/* ── Event Banner ── */}
-        <div style={popupStyles.bannerWrap}>
-          <img src={img} alt="event banner" style={popupStyles.bannerImg} />
-          <div style={popupStyles.bannerOverlay}>
-            <p style={popupStyles.bannerTag}>OPEN EVENT</p>
-            <p style={popupStyles.bannerSub}>{t("qrPay.surveyBannerSub")}</p>
-            <p style={popupStyles.bannerTitle}>{t("qrPay.surveyBannerTitle")}</p>
-          </div>
-        </div>
-
       </div>
+
+      {/* 파란 말풍선 (프랜차이즈만) */}
+      {isFranchise && (
+        <div style={popupStyles.bubbleWrap}>
+          <div style={popupStyles.bubbleArrow} />
+          <div style={popupStyles.bubble}>
+            <span style={popupStyles.bubbleLine}>브랜드명 + 점포명</span>
+            <span style={popupStyles.bubbleLine}>결제번호(포스 거래번호) 노출</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Popup Styles (뉴버전과 동일) ────────────────────────────
+// ─── Popup Styles (결제내역 상세 팝업과 동일) ────────────────
 const popupStyles: Record<string, CSSProperties> = {
   overlay: {
     position: "absolute",
@@ -358,149 +352,152 @@ const popupStyles: Record<string, CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(25,26,28,0.4)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 300,
     display: "flex",
     flexDirection: "column",
-    justifyContent: "flex-end",
-    transition: "opacity 0.3s",
-  },
-  sheet: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    paddingTop: 24,
-    paddingLeft: spacing.xl + 2,
-    paddingRight: spacing.xl + 2,
-    paddingBottom: 28,
-    fontFamily,
-    transition: "transform 0.3s ease-out",
-  },
-  sheetHeader: {
-    display: "flex",
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 28,
+    justifyContent: "center",
+    padding: 24,
+    gap: 12,
   },
-  sheetTitle: {
+  popup: {
+    width: "100%",
+    maxWidth: 340,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  popupHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 52,
+    backgroundColor: colors.primary,
+  },
+  popupHeaderText: {
     fontSize: 18,
     fontWeight: 700,
-    color: colors.black,
-    letterSpacing: -0.18,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.gray6,
-    borderRadius: 999,
-    border: "none",
-    padding: 0,
-    cursor: "pointer",
-  },
-  amountRow: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 28,
-  },
-  amountValue: {
-    fontSize: 30,
-    fontWeight: 800,
-    color: colors.black,
-    letterSpacing: -0.3,
-  },
-  additionalPayBtn: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    paddingLeft: 16,
-    paddingRight: 16,
-    height: 36,
-    backgroundColor: colors.primary,
-    borderRadius: 100,
-    border: "none",
     color: colors.white,
-    fontSize: 13,
-    fontWeight: 700,
-    letterSpacing: -0.13,
-    cursor: "pointer",
-    fontFamily,
+    letterSpacing: -0.2,
   },
-  detailSection: {
+  popupBody: {
+    padding: "24px 20px 20px",
     display: "flex",
     flexDirection: "column",
-    gap: 22,
-    marginBottom: 32,
-  },
-  detailRow: {
-    display: "flex",
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 16,
   },
-  detailLabel: {
+  popupDate: {
     fontSize: 14,
     fontWeight: 500,
     color: colors.black,
-    letterSpacing: -0.14,
+    letterSpacing: -0.2,
   },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: 700,
-    color: colors.black,
-    letterSpacing: -0.14,
-    textAlign: "right",
-  },
-  bannerWrap: {
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: 12,
-    height: 101,
-  },
-  bannerImg: {
-    position: "absolute",
-    top: 0,
-    left: 0,
+  popupAmountCard: {
     width: "100%",
-    height: "100%",
-    objectFit: "cover",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "28px 0",
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 12,
   },
-  bannerOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  popupAmount: {
+    fontSize: 36,
+    fontWeight: 800,
+    color: colors.black,
+    letterSpacing: -0.5,
+  },
+  popupStoreCard: {
+    width: "100%",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center",
-    paddingLeft: spacing.xl + 10,
-    paddingRight: 120,
+    alignItems: "center",
+    gap: 8,
+    padding: "20px 0",
+    backgroundColor: colors.gray7,
+    borderRadius: 12,
   },
-  bannerTag: {
-    fontSize: 11,
-    fontWeight: 400,
-    color: colors.white,
-    marginBottom: spacing.xs,
+  popupStoreName: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.2,
   },
-  bannerSub: {
+  popupPaymentNo: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  popupPaymentNoText: {
     fontSize: 13,
-    fontWeight: 600,
-    color: colors.white,
-    marginBottom: 2,
-    letterSpacing: -0.4,
+    fontWeight: 400,
+    color: colors.gray1,
+    letterSpacing: -0.2,
   },
-  bannerTitle: {
-    fontSize: 20,
-    fontWeight: 800,
-    color: colors.white,
-    letterSpacing: -0.5,
+  popupCopyBtn: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: colors.gray1,
+    backgroundColor: "transparent",
+    border: `1px solid ${colors.gray3}`,
+    borderRadius: 999,
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 10,
+    paddingRight: 10,
+    cursor: "pointer",
+    fontFamily,
+  },
+  popupDashed: {
+    width: "100%",
+    borderTop: `2px dashed ${colors.gray5}`,
+  },
+  popupCloseBtn: {
+    width: "100%",
+    height: 50,
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 12,
+    fontSize: 16,
+    fontWeight: 600,
+    color: colors.black,
+    cursor: "pointer",
+    fontFamily,
+  },
+  bubbleWrap: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  bubbleArrow: {
+    width: 0,
+    height: 0,
+    borderLeft: "6px solid transparent",
+    borderRight: "6px solid transparent",
+    borderBottom: "6px solid #3478F6",
+    marginBottom: -1,
+  },
+  bubble: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 18,
+    paddingRight: 18,
+    backgroundColor: "#3478F6",
+    borderRadius: 14,
+    boxShadow: "0 2px 8px rgba(52,120,246,0.35)",
+  },
+  bubbleLine: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: "#fff",
+    letterSpacing: -0.13,
   },
 };
 
@@ -835,6 +832,67 @@ const s: Record<string, CSSProperties> = {
     justifyContent: "center",
     overflow: "hidden",
     border: "none",
+  },
+
+  /* Barcode Fullscreen */
+  barcodeFullOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#111",
+    zIndex: 400,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  barcodeFullCenter: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  barcodeFullNumber: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: colors.white,
+    letterSpacing: 1.5,
+    fontFamily,
+    writingMode: "vertical-lr" as const,
+    textOrientation: "mixed" as const,
+  },
+  barcodeFullCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    width: 160,
+    height: 520,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  barcodeFullImg: {
+    width: 500,
+    height: "auto",
+    transform: "rotate(90deg) scale(3.5)",
+    flexShrink: 0,
+  },
+  barcodeFullClose: {
+    position: "absolute",
+    bottom: 40,
+    right: 24,
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
   },
 
   /* Bottom Bar */
