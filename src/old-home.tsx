@@ -1,3 +1,4 @@
+import "./app/shared/i18n";
 import { createRoot } from "react-dom/client";
 import { useState } from "react";
 import OldVersionHomePage from "./app/components/OldVersionHomePage";
