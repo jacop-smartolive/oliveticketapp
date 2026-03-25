@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>회원정보 수정</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #FF3B30;
+    --bg: #F4F4F6;
+    --card: #FFFFFF;
+    --border: #EBEBEC;
+    --text-primary: #111112;
+    --text-secondary: #6B6B70;
+    --text-muted: #ABABAF;
+    --shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    background: var(--card);
+    padding: 18px 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .back-btn {
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+  }
+
+  .back-btn:active { opacity: 0.5; }
+
+  .header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.4px;
+  }
+
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .section-group {
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .section-group:nth-child(2) { animation-delay: 0.05s; }
+  .section-group:nth-child(3) { animation-delay: 0.10s; }
+
+  /* 라벨 위 + 인풋 아래 */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .required {
+    color: var(--primary);
+    font-size: 13px;
+  }
+
+  .input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-primary);
+    font-family: 'Noto Sans KR', sans-serif;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input::placeholder { color: var(--text-muted); }
+
+  .input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255,59,48,0.08);
+    background: #fff;
+  }
+
+  .input.readonly {
+    background: #F0F0F2;
+    color: var(--text-muted);
+    cursor: default;
+  }
+
+  /* 핸드폰 수정 버튼 */
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-wrap .input { padding-right: 68px; }
+
+  .input-action-btn {
+    position: absolute;
+    right: 8px;
+    padding: 6px 14px;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: opacity 0.15s;
+  }
+
+  .input-action-btn:active { opacity: 0.8; }
+
+  /* 생년월일 */
+  .select-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .select-wrap { position: relative; }
+
+  .select {
+    width: 100%;
+    padding: 13px 28px 13px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255,59,48,0.08);
+    background: #fff;
+    color: var(--text-primary);
+  }
+
+  .select-chevron {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-muted);
+  }
+
+  /* 성별 라디오 */
+  .radio-group {
+    display: flex;
+    gap: 20px;
+  }
+
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .radio-input {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .radio-input:checked { border-color: var(--primary); }
+
+  .radio-input:checked::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--primary);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .radio-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* 하단 고정 */
+  .bottom-action {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    padding: 12px 16px 28px;
+    background: linear-gradient(transparent, var(--bg) 30%);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .btn-secondary {
+    padding: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    box-shadow: var(--shadow);
+    transition: all 0.15s;
+  }
+
+  .btn-secondary:active { transform: scale(0.97); }
+
+  .btn-primary {
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    background: var(--primary);
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    box-shadow: 0 4px 14px rgba(255,59,48,0.35);
+    transition: all 0.15s;
+  }
+
+  .btn-primary:active { transform: scale(0.97); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="header">
+    <button class="back-btn">
+      <svg width="9" height="15" viewBox="0 0 9 15" fill="none">
+        <path d="M8 1L1.5 7.5L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="header-title">회원정보 수정</span>
+  </div>
+
+  <div class="scroll">
+
+    <!-- 계정 정보 -->
+    <div class="section-group">
+      <div class="field">
+        <span class="field-label">아이디</span>
+        <input class="input readonly" type="text" value="smartolive" readonly/>
+      </div>
+    </div>
+
+    <!-- 개인 정보 -->
+    <div class="section-group">
+      <div class="field">
+        <span class="field-label">이름</span>
+        <input class="input" type="text" placeholder="이름 입력"/>
+      </div>
+      <div class="field">
+        <span class="field-label">닉네임</span>
+        <input class="input" type="text" placeholder="닉네임 입력"/>
+      </div>
+      <div class="field">
+        <span class="field-label">핸드폰 번호</span>
+        <div class="input-wrap">
+          <input class="input" type="text" value="010-0000-0000" readonly/>
+          <button class="input-action-btn">수정</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">이메일</span>
+        <input class="input" type="email" placeholder="이메일 입력"/>
+      </div>
+    </div>
+
+    <!-- 추가 정보 -->
+    <div class="section-group">
+      <div class="field">
+        <span class="field-label">생년월일</span>
+        <div class="select-group">
+          <div class="select-wrap">
+            <select class="select">
+              <option value="">년도</option>
+              <option>1988</option><option>1989</option><option>1990</option>
+              <option>1991</option><option>1992</option><option>1993</option>
+              <option>1994</option><option>1995</option><option>1996</option>
+              <option>1997</option><option>1998</option><option>1999</option><option>2000</option>
+            </select>
+            <svg class="select-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="select-wrap">
+            <select class="select">
+              <option value="">월</option>
+              <option>1월</option><option>2월</option><option>3월</option><option>4월</option>
+              <option>5월</option><option>6월</option><option>7월</option><option>8월</option>
+              <option>9월</option><option>10월</option><option>11월</option><option>12월</option>
+            </select>
+            <svg class="select-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="select-wrap">
+            <select class="select">
+              <option value="">일</option>
+              <option>1일</option><option>2일</option><option>3일</option><option>4일</option>
+              <option>5일</option><option>6일</option><option>7일</option><option>8일</option>
+              <option>9일</option><option>10일</option><option>15일</option><option>20일</option>
+              <option>25일</option><option>30일</option><option>31일</option>
+            </select>
+            <svg class="select-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">성별</span>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input class="radio-input" type="radio" name="gender" checked/>
+            <span class="radio-label">남성</span>
+          </label>
+          <label class="radio-item">
+            <input class="radio-input" type="radio" name="gender"/>
+            <span class="radio-label">여성</span>
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">주소</span>
+        <input class="input" type="text" placeholder="주소 입력"/>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-action">
+    <button class="btn-secondary">취소</button>
+    <button class="btn-primary">저장</button>
+  </div>
+
+</div>
+</body>
+</html>

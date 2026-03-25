@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>기업포인트 신청</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #FF3B30;
+    --primary-light: #FF6B63;
+    --surface: #F7F7F8;
+    --card: #FFFFFF;
+    --border: #EBEBEC;
+    --text-primary: #111112;
+    --text-secondary: #6B6B70;
+    --text-muted: #ABABAF;
+    --accent-bg: #FFF2F1;
+    --accent-border: #FFCFCC;
+    --success: #34C759;
+    --radius: 16px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--surface);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0;
+  }
+
+  .phone-frame {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100vh;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: var(--card);
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .back-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--surface);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+  }
+
+  .back-btn:active { transform: scale(0.92); background: var(--border); }
+
+  .header-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+  }
+
+  /* Scroll content */
+  .scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 0 4px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  /* Point input card */
+  .point-card {
+    padding: 20px;
+  }
+
+  .point-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+
+  .point-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+
+  .point-input-wrap.focused {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.1);
+  }
+
+  .point-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 14px 16px;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: 'Noto Sans KR', sans-serif;
+    text-align: right;
+    outline: none;
+    letter-spacing: -0.5px;
+    width: 100%;
+  }
+
+  .point-input::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 16px;
+  }
+
+  /* Info card inside point card */
+  .info-card-inner {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 12px;
+  }
+
+  .reset-btn {
+    border: none;
+    background: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: #3478F6;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    padding: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .reset-btn:active { opacity: 0.5; }
+
+
+
+  .info-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .info-icon {
+    width: 18px;
+    height: 18px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .info-icon svg { width: 10px; height: 10px; }
+
+  .info-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .info-highlight {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .info-item {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-left: 10px;
+    position: relative;
+  }
+
+  .info-item::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+  }
+
+  /* Reason card */
+  .reason-card {
+    padding: 20px;
+  }
+
+  .reason-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .reason-count {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .reason-textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-primary);
+    font-family: 'Noto Sans KR', sans-serif;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    min-height: 90px;
+  }
+
+  .reason-textarea::placeholder { color: var(--text-muted); }
+
+  .reason-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.1);
+  }
+
+  /* Tags */
+  .reason-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .reason-tag {
+    padding: 5px 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .reason-tag:active { transform: scale(0.95); }
+
+  .reason-tag.selected {
+    border-color: var(--primary);
+    background: var(--accent-bg);
+    color: var(--primary);
+  }
+
+  /* Bottom action */
+  .bottom-action {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    padding: 12px 16px 28px;
+    background: linear-gradient(transparent, var(--surface) 30%);
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+  }
+
+  .btn-secondary {
+    padding: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.15s ease;
+    box-shadow: var(--shadow);
+  }
+
+  .btn-secondary:active { transform: scale(0.97); background: var(--surface); }
+
+  .btn-primary {
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    background: var(--primary);
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 14px rgba(255, 59, 48, 0.35);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+  }
+
+  .btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 0 -20px; }
+
+  /* Animation */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card, .info-card-inner {
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .card:nth-child(1) { animation-delay: 0s; }
+  .card:nth-child(2) { animation-delay: 0.05s; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <!-- Header -->
+  <div class="header">
+    <button class="back-btn">
+      <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+        <path d="M7 1L1 7L7 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="header-title">기업포인트 신청</span>
+  </div>
+
+  <!-- Scroll content -->
+  <div class="scroll-content">
+
+    <!-- Point input -->
+    <div class="card point-card">
+      <div class="point-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>신청 포인트</span>
+        <button class="reset-btn" onclick="resetPoint()">초기화</button>
+      </div>
+      <div class="point-input-wrap" id="inputWrap">
+        <input
+          type="text"
+          class="point-input"
+          id="pointInput"
+          placeholder="0"
+          inputmode="numeric"
+          value="40,000"
+          onfocus="document.getElementById('inputWrap').classList.add('focused')"
+          onblur="document.getElementById('inputWrap').classList.remove('focused')"
+          oninput="formatNumber(this)"
+        />
+      </div>
+
+      <!-- Info box inside point card -->
+      <div class="info-card-inner">
+        <div class="info-header">
+          <div class="info-icon">
+            <svg viewBox="0 0 10 10" fill="none">
+              <path d="M5 2V5.5M5 7.5V8" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="info-title">신청 안내</span>
+        </div>
+        <div class="info-highlight">포인트 충전은 당일 신청에 한합니다.</div>
+        <div class="info-list">
+          <div class="info-item">개인이 결제한 금액을 적용하는 경우, 식대 지원 포인트와 합산해서 입력해주세요.</div>
+          <div class="info-item">충전 신청 한도를 초과하거나 금액이 일치하지 않으면 충전 신청이 되지 않습니다.</div>
+          <div class="info-item">관리자 승인 완료 시 해당 포인트가 충전됩니다.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reason -->
+    <div class="card reason-card">
+      <div class="reason-label">
+        신청 사유
+        <span class="reason-count" id="reasonCount">0 / 100</span>
+      </div>
+      <textarea
+        class="reason-textarea"
+        id="reasonText"
+        placeholder="신청 사유를 입력해주세요."
+        maxlength="100"
+        oninput="updateCount(this)"
+      ></textarea>
+      <div class="reason-tags">
+        <button class="reason-tag" onclick="selectTag(this, '야근으로 인한 신청')">야근 식대</button>
+        <button class="reason-tag" onclick="selectTag(this, '출장 중 식비 신청')">출장 식비</button>
+        <button class="reason-tag direct-tag" onclick="selectDirect(this)">직접입력</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom buttons -->
+  <div class="bottom-action">
+    <button class="btn-secondary">사전 신청</button>
+    <button class="btn-primary">바로 신청</button>
+  </div>
+</div>
+
+<script>
+  function formatNumber(input) {
+    let raw = input.value.replace(/[^0-9]/g, '');
+    if (raw === '') { input.value = ''; return; }
+    input.value = parseInt(raw).toLocaleString('ko-KR');
+  }
+
+  function addPoint(amount, btn) {
+    const input = document.getElementById('pointInput');
+    let current = parseInt(input.value.replace(/,/g, '') || '0');
+    input.value = (current + amount).toLocaleString('ko-KR');
+    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    setTimeout(() => btn.classList.remove('active'), 600);
+  }
+
+  function resetPoint() {
+    document.getElementById('pointInput').value = '';
+  }
+
+  function updateCount(textarea) {
+    document.getElementById('reasonCount').textContent = `${textarea.value.length} / 100`;
+  }
+
+  function selectTag(btn, text) {
+    document.querySelectorAll('.reason-tag').forEach(t => t.classList.remove('selected'));
+    btn.classList.add('selected');
+    const ta = document.getElementById('reasonText');
+    ta.value = text;
+    updateCount(ta);
+    ta.blur();
+  }
+
+  function selectDirect(btn) {
+    document.querySelectorAll('.reason-tag').forEach(t => t.classList.remove('selected'));
+    btn.classList.add('selected');
+    const ta = document.getElementById('reasonText');
+    ta.value = '';
+    updateCount(ta);
+    ta.focus();
+  }
+</script>
+</body>
+</html>

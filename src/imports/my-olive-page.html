@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>My 올리브</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #FF3B30;
+    --bg: #F4F4F6;
+    --card: #FFFFFF;
+    --border: #EBEBEC;
+    --text-primary: #111112;
+    --text-secondary: #6B6B70;
+    --text-muted: #ABABAF;
+    --shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Header */
+  .header {
+    background: var(--card);
+    padding: 18px 20px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.4px;
+  }
+
+  .notif-btn {
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: var(--text-primary);
+  }
+
+  .notif-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--primary);
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    border: 1.5px solid white;
+  }
+
+  /* Scroll */
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Profile card */
+  .profile-card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .profile-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .profile-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.4px;
+  }
+
+  .profile-badge {
+    background: #FFF0EF;
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.2px;
+  }
+
+  .profile-dept {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF6B63, #FF3B30);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .profile-avatar svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+  }
+
+  /* Banner */
+  .banner {
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    animation: fadeUp 0.3s ease 0.05s both;
+    position: relative;
+    height: 100px;
+    background: linear-gradient(120deg, #FF6B30 0%, #FF3B30 50%, #FF1744 100%);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    cursor: pointer;
+  }
+
+  .banner-bg-circle {
+    position: absolute;
+    right: -10px;
+    top: -20px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .banner-bg-circle2 {
+    position: absolute;
+    right: 50px;
+    bottom: -30px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .banner-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  .banner-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .banner-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.3px;
+    line-height: 1.35;
+  }
+
+  .banner-arrow {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.6);
+  }
+
+  /* Section group */
+  .section-group {
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: fadeUp 0.3s ease 0.1s both;
+  }
+
+  .section-header {
+    padding: 16px 20px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+    border-top: 1px solid var(--border);
+  }
+
+  .menu-item:first-of-type { border-top: none; }
+  .menu-item:active { background: var(--bg); }
+
+  .menu-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .menu-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .menu-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+  }
+
+  .menu-chevron {
+    color: var(--text-muted);
+  }
+
+  /* Version */
+  .version-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .version-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .version-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+  }
+
+  .version-num {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* Copyright */
+  .copyright {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 8px 0 4px;
+    letter-spacing: 0.1px;
+    animation: fadeUp 0.3s ease 0.15s both;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 8px 0 20px;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: opacity 0.15s;
+  }
+
+  .nav-item:active { opacity: 0.6; }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: -0.1px;
+  }
+
+  .nav-item.active .nav-label { color: var(--primary); }
+  .nav-item.active svg { color: var(--primary); }
+
+  .nav-item svg { color: var(--text-muted); }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="header-title">My 올리브</span>
+    <button class="notif-btn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <div class="notif-dot"></div>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="scroll">
+
+    <!-- Profile -->
+    <div class="profile-card">
+      <div class="profile-left">
+        <div class="profile-name-row">
+          <span class="profile-name">올리브</span>
+          <span class="profile-badge">에르메스</span>
+        </div>
+        <span class="profile-dept">신세계 푸드 ㅣ 전략사업팀</span>
+      </div>
+      <div class="profile-avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Banner -->
+    <div class="banner">
+      <div class="banner-bg-circle"></div>
+      <div class="banner-bg-circle2"></div>
+      <div class="banner-text">
+        <div class="banner-eyebrow">Open Event</div>
+        <div class="banner-title">올리브식권 만족도 설문<br>먹고싶은 메뉴</div>
+      </div>
+      <div class="banner-arrow">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Menu group -->
+    <div class="section-group">
+      <div class="section-header">문의/설정</div>
+
+      <div class="menu-item">
+        <div class="menu-left">
+          <div class="menu-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <span class="menu-text">문의하기</span>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+
+      <div class="menu-item">
+        <div class="menu-left">
+          <div class="menu-icon">
+            <!-- 공지사항: 확성기 아이콘 -->
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 3L12 8H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2l1.5 4h2L8 16h4l10 5V3z"/>
+            </svg>
+          </div>
+          <span class="menu-text">공지사항</span>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+
+      <div class="menu-item">
+        <div class="menu-left">
+          <div class="menu-icon">
+            <!-- 환경설정: 톱니바퀴 아이콘 -->
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </div>
+          <span class="menu-text">환경설정</span>
+        </div>
+        <svg class="menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+
+      <div class="version-row">
+        <div class="version-left">
+          <div class="menu-icon">
+            <!-- 버전: 레이어 아이콘 -->
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+          </div>
+          <span class="menu-text">버전</span>
+        </div>
+        <span class="version-num">0.001 ver</span>
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="copyright">Copyright Olive Pass, All Right Reserved</div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="nav-label">홈</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <span class="nav-label">결제내역</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+        <line x1="8" y1="21" x2="16" y2="21"/>
+        <line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      <span class="nav-label">식권</span>
+    </div>
+    <div class="nav-item active">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="nav-label">My 올리브</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

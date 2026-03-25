@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>회원정보</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #FF3B30;
+    --bg: #F4F4F6;
+    --card: #FFFFFF;
+    --border: #EBEBEC;
+    --text-primary: #111112;
+    --text-secondary: #6B6B70;
+    --text-muted: #ABABAF;
+    --shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    background: var(--card);
+    padding: 18px 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .back-btn {
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+  }
+
+  .back-btn:active { opacity: 0.5; }
+
+  .header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.4px;
+  }
+
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 카드 그룹 */
+  .section-group {
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .section-group:nth-child(2) { animation-delay: 0.05s; }
+  .section-group:nth-child(3) { animation-delay: 0.10s; }
+
+  /* 라벨 위 + 값 아래 세로 배치 */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  /* 읽기 전용 값 — 깔끔한 텍스트 */
+  .field-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    padding: 4px 0;
+    letter-spacing: -0.2px;
+  }
+
+  .field-value.muted {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* 핸드폰 수정 버튼 wrap */
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-wrap .field-value { flex: 1; padding-right: 68px; }
+
+  .input-action-btn {
+    position: absolute;
+    right: 8px;
+    padding: 6px 14px;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  /* 생년월일 */
+  .select-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .select-wrap { position: relative; }
+
+  .select {
+    width: 100%;
+    padding: 13px 28px 13px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    outline: none;
+    appearance: none;
+  }
+
+  .select-chevron {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-muted);
+  }
+
+  /* 성별 라디오 */
+  .radio-group {
+    display: flex;
+    gap: 20px;
+  }
+
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .radio-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .radio-circle.checked {
+    border-color: var(--primary);
+  }
+
+  .radio-circle.checked::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: var(--primary);
+    border-radius: 50%;
+  }
+
+  .radio-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* 하단 고정 */
+  .bottom-action {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    padding: 12px 16px 28px;
+    background: linear-gradient(transparent, var(--bg) 30%);
+  }
+
+  .bottom-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .btn-secondary {
+    padding: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    box-shadow: var(--shadow);
+    transition: all 0.15s;
+  }
+
+  .btn-secondary:active { transform: scale(0.97); }
+
+  .btn-primary {
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    background: var(--primary);
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    box-shadow: 0 4px 14px rgba(255,59,48,0.35);
+    transition: all 0.15s;
+  }
+
+  .btn-primary:active { transform: scale(0.97); }
+
+  .bottom-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .bottom-link {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 4px 16px;
+    cursor: pointer;
+  }
+
+  .bottom-divider {
+    width: 1px;
+    height: 12px;
+    background: var(--border);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="header">
+    <button class="back-btn">
+      <svg width="9" height="15" viewBox="0 0 9 15" fill="none">
+        <path d="M8 1L1.5 7.5L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="header-title">회원정보</span>
+  </div>
+
+  <div class="scroll">
+
+    <!-- 계정 정보 -->
+    <div class="section-group" style="background:#F7F7F9;">
+      <div class="field">
+        <span class="field-label">아이디</span>
+        <div class="field-value muted">smartolive</div>
+      </div>
+      <div class="field">
+        <span class="field-label">소속</span>
+        <div class="field-value muted">스마트올리브</div>
+      </div>
+      <div class="field">
+        <span class="field-label">부서</span>
+        <div class="field-value muted">전략기획팀</div>
+      </div>
+    </div>
+
+    <!-- 개인 정보 -->
+    <div class="section-group">
+      <div class="field">
+        <span class="field-label">이름</span>
+        <div class="field-value">홍길동</div>
+      </div>
+      <div class="field">
+        <span class="field-label">닉네임</span>
+        <div class="field-value">제이콤</div>
+      </div>
+      <div class="field">
+        <span class="field-label">핸드폰 번호</span>
+        <div class="input-wrap">
+          <div class="field-value">010-0000-0000</div>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">이메일</span>
+        <div class="field-value">000@kore.com</div>
+      </div>
+    </div>
+
+    <!-- 추가 정보 -->
+    <div class="section-group">
+      <div class="field">
+        <span class="field-label">생년월일</span>
+        <div class="field-value">2025.05.06</div>
+      </div>
+      <div class="field">
+        <span class="field-label">성별</span>
+        <div class="field-value">남성</div>
+      </div>
+      <div class="field">
+        <span class="field-label">주소</span>
+        <div class="field-value">서울 강남구 대치동 번화가로 대치타워존 201-20</div>
+      </div>
+    </div>
+
+    <!-- 로그아웃 / 회원탈퇴 -->
+    <div style="display:flex; justify-content:center; align-items:center; padding: 4px 0;">
+      <span class="bottom-link">로그아웃</span>
+      <div class="bottom-divider"></div>
+      <span class="bottom-link">회원탈퇴</span>
+    </div>
+
+  </div>
+
+  <div class="bottom-action">
+    <div class="bottom-btns">
+      <button class="btn-secondary">비밀번호 변경</button>
+      <button class="btn-primary">회원정보 수정</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

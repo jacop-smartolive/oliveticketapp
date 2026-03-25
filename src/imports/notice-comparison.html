@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공지사항 - 개선 비교</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 40px 24px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  /* ── BEFORE ── */
+  .phone-before {
+    width: 320px;
+  }
+  .card-before {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  }
+  .header-before {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .back-btn-before {
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+  }
+  .header-before h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+  }
+  .content-before {
+    padding: 24px 20px 0;
+  }
+  .notice-title-before {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .notice-date-before {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 20px;
+  }
+  .notice-body-before {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.8;
+  }
+  .notice-body-before p { margin-bottom: 14px; }
+  .footer-before {
+    margin-top: 24px;
+    padding: 16px 0;
+  }
+  .btn-before {
+    width: 100%;
+    padding: 14px;
+    background: #e8e8e8;
+    color: #555;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  /* ── AFTER ── */
+  .phone-after {
+    width: 320px;
+  }
+  .card-after {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  }
+  .header-after {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid #f2f2f2;
+  }
+  .back-btn-after {
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+  }
+  .header-after h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+  }
+  .content-after {
+    padding: 24px 20px 28px;
+  }
+  .notice-title-after {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .notice-date-after {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 20px;
+  }
+  .notice-body-after {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.8;
+  }
+  .notice-body-after p { margin-bottom: 14px; }
+
+  .footer-after {
+    padding: 0 20px 28px;
+    display: flex;
+    justify-content: center;
+  }
+  .btn-after {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    background: transparent;
+    color: #777;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-after:hover {
+    background: #f5f5f5;
+    color: #333;
+  }
+  .btn-after svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* problem annotation */
+  .annotation {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #fff3cd;
+    border-radius: 8px;
+    border-left: 3px solid #f0a500;
+  }
+  .annotation .icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .annotation p { font-size: 12px; color: #7a5c00; line-height: 1.6; }
+
+  .good-annotation {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    border-left: 3px solid #4caf50;
+  }
+  .good-annotation .icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .good-annotation p { font-size: 12px; color: #2e6b30; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- BEFORE -->
+<div class="phone-before">
+  <div class="label">⚠️ Before (현재)</div>
+  <div class="card-before">
+    <div class="header-before">
+      <span class="back-btn-before">‹</span>
+      <h2>공지사항</h2>
+    </div>
+    <div class="content-before">
+      <div class="notice-title-before">설날로 인한 고객센터 운영 안내 (1/27~1/30)</div>
+      <div class="notice-date-before">23개월 전</div>
+      <div class="notice-body-before">
+        <p>안녕하세요! 라우드소싱입니다.</p>
+        <p>1월 27일 (월)부터 1월 30일 (목)까지 연휴 동안 고객센터 업무가 운영되지 않습니다.</p>
+        <p>채팅, 전화, 이메일, 문의하기 등 답변 및 응대가 불가한 점 양해의 말씀드립니다.</p>
+        <p>1/28 (화), 1/30 (목) 공휴일로 인해 출금 신청이 1/29 (수) 오후 5시까지 마감된 건, 1월 31일 금요일 오후 3시에 정상 지급될 예정입니다.</p>
+        <p>감사합니다.</p>
+      </div>
+      <div class="footer-before">
+        <button class="btn-before">목록</button>
+      </div>
+    </div>
+  </div>
+  <div class="annotation">
+    <span class="icon">⚠️</span>
+    <p>버튼이 풀-와이드로 너무 크고, 회색 배경이 역할을 불명확하게 만듦. 조용한 공지 페이지와 무게감이 맞지 않음.</p>
+  </div>
+</div>
+
+<!-- AFTER -->
+<div class="phone-after">
+  <div class="label">✅ After (개선)</div>
+  <div class="card-after">
+    <div class="header-after">
+      <span class="back-btn-after">‹</span>
+      <h2>공지사항</h2>
+    </div>
+    <div class="content-after">
+      <div class="notice-title-after">설날로 인한 고객센터 운영 안내 (1/27~1/30)</div>
+      <div class="notice-date-after">23개월 전</div>
+      <div class="notice-body-after">
+        <p>안녕하세요! 라우드소싱입니다.</p>
+        <p>1월 27일 (월)부터 1월 30일 (목)까지 연휴 동안 고객센터 업무가 운영되지 않습니다.</p>
+        <p>채팅, 전화, 이메일, 문의하기 등 답변 및 응대가 불가한 점 양해의 말씀드립니다.</p>
+        <p>1/28 (화), 1/30 (목) 공휴일로 인해 출금 신청이 1/29 (수) 오후 5시까지 마감된 건, 1월 31일 금요일 오후 3시에 정상 지급될 예정입니다.</p>
+        <p>감사합니다.</p>
+      </div>
+    </div>
+    <div class="footer-after">
+      <button class="btn-after">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M2 4h12M2 8h8M2 12h10" stroke-linecap="round"/>
+        </svg>
+        목록으로
+      </button>
+    </div>
+  </div>
+  <div class="good-annotation">
+    <span class="icon">✅</span>
+    <p>아웃라인 pill 버튼 + 아이콘으로 보조적 역할이 명확해짐. 중앙 정렬로 페이지 무게감과 균형 맞춤.</p>
+  </div>
+</div>
+
+</body>
+</html>
