@@ -1,6 +1,7 @@
 {
   "rewrites": [
+    { "source": "/old-home.html", "destination": "/old-home.html" },
     { "source": "/old-home", "destination": "/old-home.html" },
-    { "source": "/((?!old-home|assets).*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
