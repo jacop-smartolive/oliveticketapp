@@ -12,6 +12,7 @@ import emart24Logo from "../../assets/brands/emart24.png";
 import megacoffeeLogo from "../../assets/brands/megacoffee.png";
 import parisbaguetteLogo from "../../assets/brands/parisbaguette.png";
 import bonjukLogo from "../../assets/brands/bonjuk.png";
+import sevenelevenLogo from "../../assets/brands/seveneleven.png";
 // P 아이콘 (하단 버튼용)
 
 
@@ -55,10 +56,11 @@ export default function OldVersionQrPaymentPage({
 
   const brands = [
     { name: "CU", logo: cuLogo, width: 33 },
-    { name: "MEGA COFFEE", logo: megacoffeeLogo, width: 72 },
+    { name: "7-ELEVEN", logo: sevenelevenLogo, width: 72 },
     { name: "emart24", logo: emart24Logo, width: 60 },
     { name: "본죽&비빔밥카페", logo: bonjukLogo, width: 80 },
     { name: "PARIS BAGUETTE", logo: parisbaguetteLogo, width: 100 },
+    { name: "MEGA COFFEE", logo: megacoffeeLogo, width: 72 },
   ];
 
   return (
@@ -238,7 +240,7 @@ export default function OldVersionQrPaymentPage({
                   <img
                     src={brand.logo}
                     alt={brand.name}
-                    style={{ width: brand.width, height: "auto", objectFit: "contain" }}
+                    style={{ width: brand.width, maxHeight: 20, objectFit: "contain" }}
                   />
                 </div>
               ))}
