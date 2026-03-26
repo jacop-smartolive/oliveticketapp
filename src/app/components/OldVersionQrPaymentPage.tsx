@@ -24,7 +24,7 @@ interface OldVersionQrPaymentPageProps {
 
 export default function OldVersionQrPaymentPage({
   onBack,
-  initialTab = "franchise",
+  initialTab = "cafeteria",
 }: OldVersionQrPaymentPageProps) {
   const [activeTab, setActiveTab] = useState<PaymentTab>(initialTab);
   const [remainingTime, setRemainingTime] = useState(150); // 2:30 in seconds
@@ -78,7 +78,7 @@ export default function OldVersionQrPaymentPage({
       {/* ── Tab Bar ── */}
       <div style={s.tabBarWrap}>
         <div style={s.tabBar}>
-          {(["franchise", "cafeteria"] as const).map((tab) => {
+          {(["cafeteria", "franchise"] as const).map((tab) => {
             const active = activeTab === tab;
             return (
               <button
