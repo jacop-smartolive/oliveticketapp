@@ -263,30 +263,35 @@ export default function OldVersionQrPaymentPage({
 
       {/* ── 바코드 전체화면 ── */}
       {showBarcodeFullscreen && (
-        <div style={s.barcodeFullOverlay} onClick={() => setShowBarcodeFullscreen(false)}>
-          <div style={s.barcodeFullCenter}>
-            <span style={s.barcodeFullNumber}>2810 0602 5142 8541 3258 1532</span>
+        <div style={s.fullOverlay}>
+          <button style={s.fullCloseTopRight} onClick={() => setShowBarcodeFullscreen(false)}>
+            <X size={22} strokeWidth={2.2} color={colors.white} />
+          </button>
+          <div style={s.barcodeFullRow}>
+            <span style={s.barcodeFullTimer}>남은시간 <span style={{ color: colors.primary, fontWeight: 700 }}>{formatTime(remainingTime)}</span></span>
             <div style={s.barcodeFullCard}>
               <img src={barcodeImg} alt="barcode" style={s.barcodeFullImg} />
             </div>
+            <span style={s.barcodeFullNumber}>2810 0602 5142 8541 3258 1532</span>
           </div>
-          <button style={s.barcodeFullClose} onClick={() => setShowBarcodeFullscreen(false)}>
-            <X size={24} strokeWidth={2} color="#fff" />
-          </button>
         </div>
       )}
 
       {/* ── QR 전체화면 (프랜차이즈) ── */}
       {showQrFullscreen && (
-        <div style={s.qrFullOverlay} onClick={() => setShowQrFullscreen(false)}>
+        <div style={s.fullOverlay}>
+          <button style={s.fullCloseTopRight} onClick={() => setShowQrFullscreen(false)}>
+            <X size={22} strokeWidth={2.2} color={colors.white} />
+          </button>
           <div style={s.qrFullCenter}>
             <div style={s.qrFullCard}>
               <img src={qrcodeImg} alt="QR code" style={s.qrFullImg} />
             </div>
           </div>
-          <button style={s.qrFullClose} onClick={() => setShowQrFullscreen(false)}>
-            <X size={24} strokeWidth={2} color="#fff" />
-          </button>
+          <div style={s.fullTimerRow}>
+            <span style={s.fullTimerLabel}>남은시간</span>
+            <span style={s.fullTimerValue}>{formatTime(remainingTime)}</span>
+          </div>
         </div>
       )}
 
@@ -853,28 +858,76 @@ const s: Record<string, CSSProperties> = {
     border: "none",
   },
 
-  /* Barcode Fullscreen */
-  barcodeFullOverlay: {
+  /* Shared Fullscreen Overlay */
+  fullOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#111",
+    backgroundColor: "#191A1C",
     zIndex: 400,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    gap: 24,
+    fontFamily,
   },
-  barcodeFullCenter: {
+  fullCloseTopRight: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: radius.full,
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
+  },
+  fullTimerRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  fullTimerLabel: {
+    fontSize: 15,
+    fontWeight: 500,
+    color: "rgba(255,255,255,0.7)",
+    letterSpacing: -0.15,
+  },
+  fullTimerValue: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: colors.primary,
+    letterSpacing: -0.15,
+  },
+
+  /* Barcode Fullscreen */
+  barcodeFullRow: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 24,
+  },
+  barcodeFullTimer: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: colors.white,
+    fontFamily,
+    writingMode: "vertical-rl" as const,
+    textOrientation: "sideways" as const,
+    whiteSpace: "nowrap" as const,
+    userSelect: "none" as const,
+    letterSpacing: -0.14,
   },
   barcodeFullNumber: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: 500,
     color: colors.white,
     letterSpacing: 1.5,
@@ -885,14 +938,15 @@ const s: Record<string, CSSProperties> = {
   },
   barcodeFullCard: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: radius.md,
+    padding: spacing.xl,
     width: 160,
     height: 520,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    boxShadow: "0 0 10px rgba(234,234,234,0.7)",
   },
   barcodeFullImg: {
     width: 500,
@@ -900,35 +954,8 @@ const s: Record<string, CSSProperties> = {
     transform: "rotate(90deg) scale(3.5)",
     flexShrink: 0,
   },
-  barcodeFullClose: {
-    position: "absolute",
-    bottom: 40,
-    right: 24,
-    width: 40,
-    height: 40,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
-    border: "none",
-    cursor: "pointer",
-    padding: 0,
-  },
 
   /* QR Fullscreen */
-  qrFullOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#111",
-    zIndex: 400,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   qrFullCenter: {
     display: "flex",
     alignItems: "center",
@@ -936,32 +963,19 @@ const s: Record<string, CSSProperties> = {
   },
   qrFullCard: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: radius.md,
+    padding: spacing.xxl,
     width: 280,
     height: 280,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    boxShadow: "0 0 10px rgba(234,234,234,0.7)",
   },
   qrFullImg: {
     width: "100%",
     height: "100%",
     objectFit: "contain" as const,
-  },
-  qrFullClose: {
-    position: "absolute",
-    top: 24,
-    right: 24,
-    width: 40,
-    height: 40,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
-    border: "none",
-    cursor: "pointer",
-    padding: 0,
   },
 
   /* Bottom Bar */
