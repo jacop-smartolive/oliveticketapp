@@ -32,6 +32,7 @@ export default function OldVersionQrPaymentPage({
   const [oliveChecked, setOliveChecked] = useState(false);
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
   const [showBarcodeFullscreen, setShowBarcodeFullscreen] = useState(false);
+  const [showQrFullscreen, setShowQrFullscreen] = useState(false);
 
   // Timer countdown
   useEffect(() => {
@@ -112,11 +113,15 @@ export default function OldVersionQrPaymentPage({
           )}
 
           {/* QR Code */}
-          <div style={{
-            ...s.qrArea,
-            width: isFranchise ? 120 : 200,
-            height: isFranchise ? 120 : 200,
-          }}>
+          <div
+            style={{
+              ...s.qrArea,
+              width: isFranchise ? 120 : 200,
+              height: isFranchise ? 120 : 200,
+              cursor: isFranchise ? "pointer" : undefined,
+            }}
+            onClick={isFranchise ? () => setShowQrFullscreen(true) : undefined}
+          >
             <img src={qrcodeImg} alt="QR code" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           </div>
 
@@ -266,6 +271,20 @@ export default function OldVersionQrPaymentPage({
             </div>
           </div>
           <button style={s.barcodeFullClose} onClick={() => setShowBarcodeFullscreen(false)}>
+            <X size={24} strokeWidth={2} color="#fff" />
+          </button>
+        </div>
+      )}
+
+      {/* ── QR 전체화면 (프랜차이즈) ── */}
+      {showQrFullscreen && (
+        <div style={s.qrFullOverlay} onClick={() => setShowQrFullscreen(false)}>
+          <div style={s.qrFullCenter}>
+            <div style={s.qrFullCard}>
+              <img src={qrcodeImg} alt="QR code" style={s.qrFullImg} />
+            </div>
+          </div>
+          <button style={s.qrFullClose} onClick={() => setShowQrFullscreen(false)}>
             <X size={24} strokeWidth={2} color="#fff" />
           </button>
         </div>
@@ -884,6 +903,55 @@ const s: Record<string, CSSProperties> = {
   barcodeFullClose: {
     position: "absolute",
     bottom: 40,
+    right: 24,
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
+  },
+
+  /* QR Fullscreen */
+  qrFullOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#111",
+    zIndex: 400,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  qrFullCenter: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  qrFullCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 24,
+    width: 280,
+    height: 280,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  qrFullImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain" as const,
+  },
+  qrFullClose: {
+    position: "absolute",
+    top: 24,
     right: 24,
     width: 40,
     height: 40,
