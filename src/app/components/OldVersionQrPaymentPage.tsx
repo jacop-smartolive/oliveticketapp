@@ -855,13 +855,14 @@ const s: Record<string, CSSProperties> = {
     gap: 16,
   },
   barcodeFullNumber: {
-    fontSize: 14,
-    fontWeight: 600,
+    fontSize: 15,
+    fontWeight: 500,
     color: colors.white,
     letterSpacing: 1.5,
     fontFamily,
     writingMode: "vertical-lr" as const,
     textOrientation: "mixed" as const,
+    userSelect: "none" as const,
   },
   barcodeFullCard: {
     backgroundColor: colors.white,
