@@ -136,6 +136,7 @@ export default function OldVersionQrPaymentPage({
                       />
                     ))}
                   </div>
+                  <div style={s.brandFadeLeft} />
                   <div style={s.brandFadeRight} />
                 </div>
               </div>
@@ -693,8 +694,18 @@ const s: Record<string, CSSProperties> = {
   brandSwipeWrap: {
     position: "relative",
     overflow: "hidden",
+    marginLeft: -20,
     marginRight: -20,
-    paddingRight: 0,
+  },
+  brandFadeLeft: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: 40,
+    background: "linear-gradient(to left, rgba(255,255,255,0), rgba(255,255,255,1))",
+    pointerEvents: "none",
+    zIndex: 1,
   },
   brandFadeRight: {
     position: "absolute",
@@ -712,6 +723,7 @@ const s: Record<string, CSSProperties> = {
     gap: 12,
     overflowX: "auto",
     paddingBottom: 4,
+    paddingLeft: 20,
     paddingRight: 20,
     WebkitOverflowScrolling: "touch",
     scrollbarWidth: "none",
