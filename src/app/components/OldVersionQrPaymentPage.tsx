@@ -125,15 +125,18 @@ export default function OldVersionQrPaymentPage({
               {/* 이용 가능 브랜드 */}
               <div style={s.brandSection}>
                 <span style={s.brandLabel}>이용 가능 브랜드</span>
-                <div style={s.brandSwipeRow}>
-                  {brands.map((brand) => (
-                    <img
-                      key={brand.name}
-                      src={brand.logo}
-                      alt={brand.name}
-                      style={s.brandRoundLogo}
-                    />
-                  ))}
+                <div style={s.brandSwipeWrap}>
+                  <div style={s.brandSwipeRow}>
+                    {brands.map((brand) => (
+                      <img
+                        key={brand.name}
+                        src={brand.logo}
+                        alt={brand.name}
+                        style={s.brandRoundLogo}
+                      />
+                    ))}
+                  </div>
+                  <div style={s.brandFadeRight} />
                 </div>
               </div>
 
@@ -687,13 +690,28 @@ const s: Record<string, CSSProperties> = {
     color: colors.gray1,
     letterSpacing: -0.13,
   },
+  brandSwipeWrap: {
+    position: "relative",
+    overflow: "hidden",
+    marginRight: -20,
+    paddingRight: 0,
+  },
+  brandFadeRight: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 40,
+    background: "linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,1))",
+    pointerEvents: "none",
+    zIndex: 1,
+  },
   brandSwipeRow: {
     display: "flex",
     flexDirection: "row",
     gap: 12,
     overflowX: "auto",
     paddingBottom: 4,
-    marginRight: -20,
     paddingRight: 20,
     WebkitOverflowScrolling: "touch",
     scrollbarWidth: "none",
