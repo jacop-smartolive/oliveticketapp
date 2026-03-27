@@ -6,13 +6,13 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Bell, X } from "lucide-react";
 import { colors, fontFamily, spacing, radius, headerTitleBase } from "../shared/tokens";
 import barcodeImg from "../../assets/barcode.png";
-import qrcodeImg from "../../assets/qrcode.png";
-import cuLogo from "../../assets/brands/cu.png";
-import emart24Logo from "../../assets/brands/emart24.png";
-import megacoffeeLogo from "../../assets/brands/megacoffee.png";
-import parisbaguetteLogo from "../../assets/brands/parisbaguette.png";
-import bonjukLogo from "../../assets/brands/bonjuk.png";
-import sevenelevenLogo from "../../assets/brands/seveneleven.png";
+import qrcodeImg from "../../assets/brands/QrCodeSvg.png";
+import roundEmart24Logo from "../../assets/brands/round_emart24.png";
+import roundCuLogo from "../../assets/brands/round_cu.png";
+import roundSevenelevenLogo from "../../assets/brands/round_seveneleven.png";
+import roundMegacoffeeLogo from "../../assets/brands/round_megacoffee.png";
+import roundParisbaguetteLogo from "../../assets/brands/round_parisbaguette.png";
+import roundBonjukLogo from "../../assets/brands/round_bonjuk.png";
 // P 아이콘 (하단 버튼용)
 
 
@@ -55,12 +55,12 @@ export default function OldVersionQrPaymentPage({
   const oliveDisabled = isFranchise;
 
   const brands = [
-    { name: "CU", logo: cuLogo, width: 33 },
-    { name: "7-ELEVEN", logo: sevenelevenLogo, width: 72 },
-    { name: "emart24", logo: emart24Logo, width: 60 },
-    { name: "본죽&비빔밥카페", logo: bonjukLogo, width: 80 },
-    { name: "PARIS BAGUETTE", logo: parisbaguetteLogo, width: 100 },
-    { name: "MEGA COFFEE", logo: megacoffeeLogo, width: 72 },
+    { name: "emart24", logo: roundEmart24Logo },
+    { name: "CU", logo: roundCuLogo },
+    { name: "7-ELEVEN", logo: roundSevenelevenLogo },
+    { name: "MEGA COFFEE", logo: roundMegacoffeeLogo },
+    { name: "PARIS BAGUETTE", logo: roundParisbaguetteLogo },
+    { name: "본죽&비빔밥카페", logo: roundBonjukLogo },
   ];
 
   return (
@@ -92,7 +92,7 @@ export default function OldVersionQrPaymentPage({
                 }}
                 onClick={() => {
                   setActiveTab(tab);
-                  setSelectedPoint("corporate");
+                  setCorporateChecked(true);
                 }}
               >
                 {tab === "franchise" ? "프랜차이즈" : "구내식당"}
@@ -107,34 +107,62 @@ export default function OldVersionQrPaymentPage({
       <div style={s.scroll}>
         {/* QR / Barcode Card */}
         <div style={s.qrCard}>
-          {/* 프랜차이즈: 바코드 + QR */}
-          {isFranchise && (
-            <div style={s.barcodeArea} onClick={() => setShowBarcodeFullscreen(true)}>
-              <img src={barcodeImg} alt="barcode" style={{ width: "100%", height: "auto", cursor: "pointer" }} />
-            </div>
+          {/* 프랜차이즈: 바코드 + QR 일렬 배치 */}
+          {isFranchise ? (
+            <>
+              <div style={s.barcodeQrRow}>
+                <div style={s.barcodeAreaInline} onClick={() => setShowBarcodeFullscreen(true)}>
+                  <img src={barcodeImg} alt="barcode" style={{ width: "100%", height: "100%", display: "block", cursor: "pointer" }} />
+                </div>
+                <div style={s.qrAreaInline} onClick={() => setShowQrFullscreen(true)}>
+                  <img src={qrcodeImg} alt="QR code" style={{ width: 80, height: 80, display: "block", cursor: "pointer" }} />
+                </div>
+              </div>
+
+              {/* 구분선 */}
+              <div style={s.dividerFull} />
+
+              {/* 이용 가능 브랜드 */}
+              <div style={s.brandSection}>
+                <span style={s.brandLabel}>이용 가능 브랜드</span>
+                <div style={s.brandSwipeRow}>
+                  {brands.map((brand) => (
+                    <img
+                      key={brand.name}
+                      src={brand.logo}
+                      alt={brand.name}
+                      style={s.brandRoundLogo}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* 구분선 + 남은시간 */}
+              <div style={s.timerSection}>
+                <div style={s.dividerFull} />
+                <div style={s.timerRow}>
+                  <span style={s.timerLabel}>남은시간</span>
+                  <span style={s.timerValue}>{formatTime(remainingTime)}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* 구내식당: QR만 */}
+              <div style={{ ...s.qrArea, width: 200, height: 200 }}>
+                <img src={qrcodeImg} alt="QR code" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              </div>
+
+              {/* 구분선 + 남은시간 */}
+              <div style={s.timerSection}>
+                <div style={s.dividerFull} />
+                <div style={s.timerRow}>
+                  <span style={s.timerLabel}>남은시간</span>
+                  <span style={s.timerValue}>{formatTime(remainingTime)}</span>
+                </div>
+              </div>
+            </>
           )}
-
-          {/* QR Code */}
-          <div
-            style={{
-              ...s.qrArea,
-              width: isFranchise ? 120 : 200,
-              height: isFranchise ? 120 : 200,
-              cursor: isFranchise ? "pointer" : undefined,
-            }}
-            onClick={isFranchise ? () => setShowQrFullscreen(true) : undefined}
-          >
-            <img src={qrcodeImg} alt="QR code" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-          </div>
-
-          {/* 구분선 + 남은시간 */}
-          <div style={s.timerSection}>
-            <div style={s.dividerFull} />
-            <div style={s.timerRow}>
-              <span style={s.timerLabel}>남은시간</span>
-              <span style={s.timerValue}>{formatTime(remainingTime)}</span>
-            </div>
-          </div>
         </div>
 
         {/* ── 말풍선 (남은시간 바로 아래, 겹침) ── */}
@@ -230,23 +258,6 @@ export default function OldVersionQrPaymentPage({
           </div>
         </div>
 
-        {/* ── 이용 가능 브랜드 (프랜차이즈만) ── */}
-        {isFranchise && (
-          <div style={s.brandCard}>
-            <span style={s.brandTitle}>이용 가능 브랜드</span>
-            <div style={s.brandGrid}>
-              {brands.map((brand) => (
-                <div key={brand.name} style={s.brandChip}>
-                  <img
-                    src={brand.logo}
-                    alt={brand.name}
-                    style={{ width: brand.width, maxHeight: 20, objectFit: "contain" }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
 
         {/* 하단 여백 */}
@@ -644,34 +655,56 @@ const s: Record<string, CSSProperties> = {
     paddingRight: 20,
     gap: 24,
   },
-  barcodeArea: {
+  barcodeQrRow: {
     width: "100%",
-  },
-  barcodePlaceholder: {
-    width: "100%",
-    height: 70,
-    backgroundColor: colors.gray6,
-    borderRadius: 4,
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: 26,
   },
-  barcodeLines: {
-    width: "90%",
-    height: "80%",
-    background: `repeating-linear-gradient(
-      90deg,
-      ${colors.black} 0px,
-      ${colors.black} 2px,
-      transparent 2px,
-      transparent 5px
-    )`,
+  barcodeAreaInline: {
+    flex: 1,
+  },
+  qrAreaInline: {
+    width: 80,
+    height: 80,
+    flexShrink: 0,
   },
   qrArea: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+  },
+  brandSection: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  },
+  brandLabel: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: colors.gray1,
+    letterSpacing: -0.13,
+  },
+  brandSwipeRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 12,
+    overflowX: "auto",
+    paddingBottom: 4,
+    marginRight: -20,
+    paddingRight: 20,
+    WebkitOverflowScrolling: "touch",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+  } as CSSProperties,
+  brandRoundLogo: {
+    width: 64,
+    height: 64,
+    borderRadius: 999,
+    objectFit: "cover" as const,
+    flexShrink: 0,
   },
   timerSection: {
     width: "100%",
@@ -828,37 +861,6 @@ const s: Record<string, CSSProperties> = {
     marginBottom: -1,
   },
 
-  /* Brand Card */
-  brandCard: {
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    padding: "20px 13px 20px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  brandTitle: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: colors.gray1,
-    letterSpacing: -0.13,
-    paddingLeft: 7,
-  },
-  brandGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gap: 10,
-  },
-  brandChip: {
-    backgroundColor: colors.white,
-    borderRadius: 999,
-    height: 35,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-    border: "none",
-  },
 
   /* Shared Fullscreen Overlay */
   fullOverlay: {
