@@ -55,12 +55,12 @@ export default function OldVersionQrPaymentPage({
   const oliveDisabled = isFranchise;
 
   const brands = [
-    { name: "emart24", logo: roundEmart24Logo },
+    { name: "이마트24", logo: roundEmart24Logo },
     { name: "CU", logo: roundCuLogo },
-    { name: "7-ELEVEN", logo: roundSevenelevenLogo },
-    { name: "MEGA COFFEE", logo: roundMegacoffeeLogo },
-    { name: "PARIS BAGUETTE", logo: roundParisbaguetteLogo },
-    { name: "본죽&비빔밥카페", logo: roundBonjukLogo },
+    { name: "세븐일레븐", logo: roundSevenelevenLogo },
+    { name: "메가커피", logo: roundMegacoffeeLogo },
+    { name: "파리바게트", logo: roundParisbaguetteLogo },
+    { name: "본죽&비빔밥", logo: roundBonjukLogo },
   ];
 
   return (
@@ -128,12 +128,14 @@ export default function OldVersionQrPaymentPage({
                 <div style={s.brandSwipeWrap}>
                   <div style={s.brandSwipeRow}>
                     {brands.map((brand) => (
-                      <img
-                        key={brand.name}
-                        src={brand.logo}
-                        alt={brand.name}
-                        style={s.brandRoundLogo}
-                      />
+                      <div key={brand.name} style={s.brandItem}>
+                        <img
+                          src={brand.logo}
+                          alt={brand.name}
+                          style={s.brandRoundLogo}
+                        />
+                        <span style={s.brandName}>{brand.name}</span>
+                      </div>
                     ))}
                   </div>
                   <div style={s.brandFadeLeft} />
@@ -687,7 +689,7 @@ const s: Record<string, CSSProperties> = {
   },
   brandLabel: {
     fontSize: 13,
-    fontWeight: 500,
+    fontWeight: 700,
     color: colors.gray1,
     letterSpacing: -0.13,
   },
@@ -729,12 +731,25 @@ const s: Record<string, CSSProperties> = {
     scrollbarWidth: "none",
     msOverflowStyle: "none",
   } as CSSProperties,
+  brandItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 7,
+    flexShrink: 0,
+  },
   brandRoundLogo: {
     width: 64,
     height: 64,
     borderRadius: 999,
     objectFit: "cover" as const,
-    flexShrink: 0,
+  },
+  brandName: {
+    fontSize: 11,
+    fontWeight: 500,
+    color: colors.gray1,
+    letterSpacing: -0.11,
+    whiteSpace: "nowrap" as const,
   },
   timerSection: {
     width: "100%",
