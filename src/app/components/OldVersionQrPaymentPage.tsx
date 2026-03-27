@@ -58,7 +58,7 @@ export default function OldVersionQrPaymentPage({
     { name: "이마트24", logo: roundEmart24Logo },
     { name: "CU", logo: roundCuLogo },
     { name: "세븐일레븐", logo: roundSevenelevenLogo },
-    { name: "메가커피", logo: roundMegacoffeeLogo },
+
     { name: "파리바게트", logo: roundParisbaguetteLogo },
     { name: "본죽&비빔밥", logo: roundBonjukLogo },
   ];
