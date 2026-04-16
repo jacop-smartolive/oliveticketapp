@@ -12,6 +12,8 @@ import {
   UserRound,
   ChevronRight,
   Bell,
+  MapPin,
+  Search,
   Calendar,
   Clock,
   ShoppingBag,
@@ -51,6 +53,7 @@ import LoginPage from "./components/LoginPage";
 import SignupPage from "./components/SignupPage";
 import FindAccountPage from "./components/FindAccountPage";
 import DocsPage from "./components/DocsPage";
+import MapPage from "./components/MapPage";
 import OldVersionHomePage from "./components/OldVersionHomePage";
 import OldVersionQrPaymentPage from "./components/OldVersionQrPaymentPage";
 import OldVersionPaymentHistoryPage from "./components/OldVersionPaymentHistoryPage";
@@ -110,7 +113,33 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
+    flex: 1,
+    minWidth: 0,
+    marginRight: 8,
+  },
+  headerSearchBar: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flex: 1,
+    minWidth: 0,
+    height: 36,
+    backgroundColor: colors.inputBg,
+    borderRadius: radius.full,
+    paddingLeft: 12,
+    paddingRight: 12,
+    border: "none",
+    cursor: "pointer",
+  },
+  headerSearchText: {
+    fontSize: 13,
+    color: colors.gray2,
+    letterSpacing: -0.3,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   },
   headerTitle: {
     fontSize: 18,
@@ -122,11 +151,12 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
+    gap: 4,
+    flexShrink: 0,
   },
   iconBtn: {
-    width: 44,
-    height: 44,
+    width: 36,
+    height: 40,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -140,8 +170,8 @@ const styles: Record<string, CSSProperties> = {
     height: 8,
     backgroundColor: colors.primary,
     borderRadius: radius.full,
-    top: 8,
-    right: 8,
+    top: 5,
+    right: 4,
     borderWidth: 1.5,
     borderStyle: "solid",
     borderColor: "white",
@@ -152,8 +182,8 @@ const styles: Record<string, CSSProperties> = {
     height: 18,
     backgroundColor: colors.primary,
     borderRadius: radius.full,
-    top: 4,
-    right: 2,
+    top: 2,
+    right: 0,
     borderWidth: 1.5,
     borderStyle: "solid",
     borderColor: "white",
@@ -827,6 +857,7 @@ function AppContent() {
   const [showSignup, setShowSignup] = useState(false);
   const [showFindAccount, setShowFindAccount] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
@@ -1001,7 +1032,7 @@ function AppContent() {
         boxShadow: isSticky ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
       }}>
         <div style={styles.headerLeft}>
-          <div style={{ width: 28, height: 28, flexShrink: 0 }}>
+          <div style={{ width: 26, height: 26, flexShrink: 0, cursor: "pointer" }} onClick={() => setShowDocs(true)}>
             <svg
               viewBox="0 0 466.474 466.337"
               fill="none"
@@ -1036,7 +1067,10 @@ function AppContent() {
               <path d={svgPaths.pcd2280} fill="#EE2B2F" />
             </svg>
           </div>
-          <span style={styles.headerTitle} onClick={() => setShowDocs(true)} title={t("common.projectDocs")}>{t("home.title")}</span>
+          <div style={styles.headerSearchBar as any}>
+            <Search size={16} strokeWidth={2} color={colors.gray2} style={{ flexShrink: 0 }} />
+            <span style={styles.headerSearchText as any}>가게명(브랜드명) 입력</span>
+          </div>
         </div>
         <div style={styles.headerRight}>
           <button style={styles.iconBtn} onClick={() => setShowCart(true)}>
@@ -1050,6 +1084,13 @@ function AppContent() {
                 {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
               </span>
             )}
+          </button>
+          <button style={styles.iconBtn} onClick={() => setShowMap(true)}>
+            <MapPin
+              size={24}
+              strokeWidth={2.2}
+              color={colors.black}
+            />
           </button>
           <button style={styles.iconBtn} onClick={() => setActiveNav("notification")}>
             <Bell
@@ -1605,6 +1646,11 @@ function AppContent() {
       {/* ── Docs Page ── */}
       {showDocs && (
         <DocsPage onBack={() => setShowDocs(false)} />
+      )}
+
+      {/* ── Map Page ── */}
+      {showMap && (
+        <MapPage onBack={() => setShowMap(false)} />
       )}
 
       {/* ── Menu Detail Page ── */}
