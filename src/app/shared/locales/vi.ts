@@ -741,6 +741,25 @@ const vi = {
     bannerSurvey: "Khảo sát Phiếu ăn Olive",
     bannerFavorite: "Thực đơn Yêu thích của bạn",
   },
+  // ─── Bản đồ ──────────────────────────────────────────────────
+  map: {
+    title: "Bản đồ",
+    searchHere: "Tìm kiếm khu vực này",
+    myLocation: "Vị trí",
+    company: "Cty",
+    nearbyRestaurants: "Nhà hàng & Quán cà phê gần đây",
+    count: "{{count}} địa điểm",
+    onSitePayment: "Tại chỗ",
+    saved: "Đã lưu.",
+    storeInfo: "Thông tin cửa hàng",
+    location: "Vị trí",
+    fromCurrentLocation: "Từ vị trí hiện tại",
+    address: "Địa chỉ",
+    call: "Gọi",
+    findRoute: "Chỉ đường",
+    order: "Đặt hàng",
+    searchPlaceholder: "Nhập tên cửa hàng (thương hiệu)",
+  },
 } as const;
 
 export default vi;

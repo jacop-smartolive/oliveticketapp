@@ -1069,7 +1069,7 @@ function AppContent() {
           </div>
           <div style={styles.headerSearchBar as any}>
             <Search size={16} strokeWidth={2} color={colors.gray2} style={{ flexShrink: 0 }} />
-            <span style={styles.headerSearchText as any}>가게명(브랜드명) 입력</span>
+            <span style={styles.headerSearchText as any}>{t("map.searchPlaceholder")}</span>
           </div>
         </div>
         <div style={styles.headerRight}>

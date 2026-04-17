@@ -6,6 +6,7 @@ import { ChevronLeft, MapPin, Navigation, Building2, Crosshair, Bookmark, Phone,
 import type { CSSProperties } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, radius, headerTitleBase } from "../shared/tokens";
 import { showSuccessToast } from "../shared/toast";
 
@@ -152,6 +153,7 @@ const SHEET_PEEK = 35;    /* 접힌 상태 */
 const SHEET_EXPAND = 75;  /* 펼친 상태 */
 
 export default function MapPage({ onBack }: MapPageProps) {
+  const { t } = useTranslation();
   const [locationFilter, setLocationFilter] = useState<LocationFilter>("nearby");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
@@ -253,7 +255,7 @@ export default function MapPage({ onBack }: MapPageProps) {
             <button style={s.backBtn} onClick={onBack} aria-label="뒤로가기">
               <ChevronLeft size={26} strokeWidth={2.2} color={colors.black} />
             </button>
-            <h1 style={s.headerTitle}>지도</h1>
+            <h1 style={s.headerTitle}>{t("map.title")}</h1>
           </div>
         </div>
       </div>
@@ -265,18 +267,18 @@ export default function MapPage({ onBack }: MapPageProps) {
         {/* Search pill */}
         <div style={s.mapSearchPill}>
           <Navigation size={14} strokeWidth={2.2} color={colors.blue} />
-          <span style={s.mapSearchText}>현 지도에서 검색</span>
+          <span style={s.mapSearchText}>{t("map.searchHere")}</span>
         </div>
 
         {/* Right side action buttons */}
         <div style={{ ...s.filterGroup, bottom: `calc(${sheetHeight}% + 26px)` }}>
           <button style={s.companyBtn}>
             <Crosshair size={17} strokeWidth={2} color={colors.gray1} />
-            <span style={s.companyBtnLabel}>내위치</span>
+            <span style={s.companyBtnLabel}>{t("map.myLocation")}</span>
           </button>
           <button style={s.companyBtn}>
             <Building2 size={17} strokeWidth={2} color={colors.gray1} />
-            <span style={s.companyBtnLabel}>회사</span>
+            <span style={s.companyBtnLabel}>{t("map.company")}</span>
           </button>
         </div>
       </div>
@@ -297,7 +299,7 @@ export default function MapPage({ onBack }: MapPageProps) {
             <div style={s.sheetHandle}><div style={s.sheetHandleBar} /></div>
             {/* Badge + buttons row */}
             <div style={s.storePanelTopRow}>
-              <span style={s.storePanelBadge}>{store.badge}</span>
+              <span style={s.storePanelBadge}>{t("map.onSitePayment")}</span>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <button style={s.storePanelCircleBtn}>
                   <Phone size={16} strokeWidth={0} fill={colors.gray1} color={colors.gray1} />
@@ -314,18 +316,18 @@ export default function MapPage({ onBack }: MapPageProps) {
             {/* Info */}
             <div style={s.storePanelContent}>
               <div style={s.storePanelInfoRow}>
-                <span style={s.storePanelLabel}>위치</span>
-                <span style={s.storePanelValue}>현재 위치기준 <span style={{ color: colors.primary, fontWeight: 600 }}>{store.distance}</span></span>
+                <span style={s.storePanelLabel}>{t("map.location")}</span>
+                <span style={s.storePanelValue}>{t("map.fromCurrentLocation")} <span style={{ color: colors.primary, fontWeight: 600 }}>{store.distance}</span></span>
               </div>
               <div style={s.storePanelInfoRow}>
-                <span style={s.storePanelLabel}>주소</span>
+                <span style={s.storePanelLabel}>{t("map.address")}</span>
                 <span style={s.storePanelValue}>{store.fullAddress}</span>
               </div>
             </div>
             {/* Buttons */}
             <div style={s.storePanelBtnGroup}>
-              <button style={s.storePanelBtnOutline}>길 찾기</button>
-              <button style={s.storePanelBtnPrimary}>주문하기</button>
+              <button style={s.storePanelBtnOutline}>{t("map.findRoute")}</button>
+              <button style={s.storePanelBtnPrimary}>{t("map.order")}</button>
             </div>
           </div>
         );
@@ -363,8 +365,8 @@ export default function MapPage({ onBack }: MapPageProps) {
           onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
           onTouchEnd={handleDragEnd}
         >
-          <span style={s.listTitle}>주변 식당 · 카페</span>
-          <span style={s.listCount}>{mockRestaurants.length}곳</span>
+          <span style={s.listTitle}>{t("map.nearbyRestaurants")}</span>
+          <span style={s.listCount}>{t("map.count", { count: mockRestaurants.length })}</span>
         </div>
 
         <div
@@ -399,7 +401,7 @@ export default function MapPage({ onBack }: MapPageProps) {
                       next.delete(r.id);
                     } else {
                       next.add(r.id);
-                      showSuccessToast("저장되었습니다.");
+                      showSuccessToast(t("map.saved"));
                     }
                     setSavedIds(next);
                   }}
@@ -414,7 +416,7 @@ export default function MapPage({ onBack }: MapPageProps) {
                 <div style={s.cardText}>
                   <span style={s.cardName}>{r.name}</span>
                   <span style={s.cardAddress}>{r.address}</span>
-                  <span style={s.cardBadge}>{r.badge}</span>
+                  <span style={s.cardBadge}>{t("map.onSitePayment")}</span>
                 </div>
               </div>
               <div style={s.cardImgPlaceholder}>

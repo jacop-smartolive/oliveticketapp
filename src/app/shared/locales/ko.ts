@@ -747,6 +747,25 @@ const ko = {
     bannerSurvey: "올리브식권 만족도 설문",
     bannerFavorite: "먹고싶은 메뉴",
   },
+  // ─── 지도 ──────────────────────────────────────────────────
+  map: {
+    title: "지도",
+    searchHere: "현 지도에서 검색",
+    myLocation: "내위치",
+    company: "회사",
+    nearbyRestaurants: "주변 식당 · 카페",
+    count: "{{count}}곳",
+    onSitePayment: "현장결제",
+    saved: "저장되었습니다.",
+    storeInfo: "매장 정보",
+    location: "위치",
+    fromCurrentLocation: "현재 위치기준",
+    address: "주소",
+    call: "전화",
+    findRoute: "길 찾기",
+    order: "주문하기",
+    searchPlaceholder: "가게명(브랜드명) 입력",
+  },
 } as const;
 
 export default ko;

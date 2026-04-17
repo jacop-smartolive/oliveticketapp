@@ -741,6 +741,25 @@ const en = {
     bannerSurvey: "Olive Meal Voucher Survey",
     bannerFavorite: "Your Favorite Menu",
   },
+  // ─── Map ──────────────────────────────────────────────────
+  map: {
+    title: "Map",
+    searchHere: "Search in this area",
+    myLocation: "Me",
+    company: "Office",
+    nearbyRestaurants: "Nearby Restaurants & Cafes",
+    count: "{{count}} places",
+    onSitePayment: "On-site",
+    saved: "Saved.",
+    storeInfo: "Store Info",
+    location: "Location",
+    fromCurrentLocation: "From current location",
+    address: "Address",
+    call: "Call",
+    findRoute: "Directions",
+    order: "Order",
+    searchPlaceholder: "Search store (brand name)",
+  },
 } as const;
 
 export default en;
