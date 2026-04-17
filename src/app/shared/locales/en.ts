@@ -741,6 +741,70 @@ const en = {
     bannerSurvey: "Olive Meal Voucher Survey",
     bannerFavorite: "Your Favorite Menu",
   },
+  // ─── Point Hub ──────────────────────────────────────────
+  pointHub: {
+    title: "Points",
+    corporatePoint: "Corporate Points",
+    corporatePointDesc: "Company-provided points",
+    olivePoint: "Olive Points",
+    olivePointDesc: "Personal charged points",
+    management: "Point Management",
+    refund: "Refund Olive Points",
+    gift: "Gift Olive Points",
+    registerGiftCoupon: "Register Gift Coupon",
+  },
+
+  // ─── Olive Point ─────────────────────────────────────────
+  olivePoint: {
+    title: "Olive Points",
+    remainingPoint: "Remaining",
+    chargeRefund: "Charge/Refund",
+    paymentMethod: "Payment Methods",
+    availableLabel: "Olive Points",
+    chargedPoint: "Charged Points",
+    remainingPointLabel: "Remaining Points",
+    chargedAt: "Charged At",
+    refund: "Refund",
+    charge: "Charge",
+    filterAll: "All",
+    filterCharge: "Charge",
+    filterUse: "Use",
+    filterRefund: "Refund",
+    statusUsed: "Used",
+    statusApproved: "Approved",
+    statusRefunded: "Refunded",
+  },
+
+  // ─── Olive Point Receipt ─────────────────────────────────
+  olivePointReceipt: {
+    title: "Olive Point Receipt",
+    eReceipt: "E-Receipt",
+    businessName: "Business",
+    transactionAt: "Transaction",
+    approvalNo: "Approval No.",
+    installment: "Installment",
+    product: "Product",
+    amount: "Amount",
+    refundableAmount: "Refundable",
+    businessNo: "Business No.",
+    representative: "Representative",
+    address: "Address",
+    contact: "Contact",
+    refund: "Refund",
+  },
+
+  // ─── Olive Point Refund ──────────────────────────────────
+  olivePointRefund: {
+    title: "Refund",
+    statusUsed: "Used",
+    refundPoint: "Refund Point",
+    confirmTitle: "Request a refund?",
+    confirmMessage: "After requesting, it takes about\n1-3 days to be deposited.",
+    submitBtn: "Apply",
+    submittedToast: "Refund request completed.",
+    completedAlert: "Point refund request completed.",
+  },
+
   // ─── Map ──────────────────────────────────────────────────
   map: {
     title: "Map",

@@ -747,6 +747,70 @@ const ko = {
     bannerSurvey: "올리브식권 만족도 설문",
     bannerFavorite: "먹고싶은 메뉴",
   },
+  // ─── 포인트 허브 ──────────────────────────────────────────
+  pointHub: {
+    title: "포인트",
+    corporatePoint: "기업포인트",
+    corporatePointDesc: "기업 제공 포인트",
+    olivePoint: "올리브포인트",
+    olivePointDesc: "개인 충전 포인트",
+    management: "포인트 관리",
+    refund: "올리브포인트 환불하기",
+    gift: "올리브포인트 선물하기",
+    registerGiftCoupon: "선물 쿠폰 등록하기",
+  },
+
+  // ─── 올리브포인트 ────────────────────────────────────────
+  olivePoint: {
+    title: "올리브 포인트",
+    remainingPoint: "잔여포인트",
+    chargeRefund: "충전/환불",
+    paymentMethod: "결제수단 관리",
+    availableLabel: "올리브 포인트",
+    chargedPoint: "충전 포인트",
+    remainingPointLabel: "잔여 포인트",
+    chargedAt: "충전일시",
+    refund: "환불하기",
+    charge: "충전하기",
+    filterAll: "전체",
+    filterCharge: "충전",
+    filterUse: "사용",
+    filterRefund: "환불",
+    statusUsed: "사용완료",
+    statusApproved: "승인완료",
+    statusRefunded: "환불완료",
+  },
+
+  // ─── 올리브포인트 영수증 ──────────────────────────────────
+  olivePointReceipt: {
+    title: "올리브 포인트 결제 영수증",
+    eReceipt: "전자영수증",
+    businessName: "사업장명",
+    transactionAt: "거래일시",
+    approvalNo: "승인번호",
+    installment: "할부개월",
+    product: "결제상품",
+    amount: "결제금액",
+    refundableAmount: "환불가능금액",
+    businessNo: "사업자번호",
+    representative: "대표자명",
+    address: "주소",
+    contact: "연락처",
+    refund: "환불하기",
+  },
+
+  // ─── 올리브포인트 환불하기 ────────────────────────────────
+  olivePointRefund: {
+    title: "환불하기",
+    statusUsed: "사용완료",
+    refundPoint: "포인트 환불",
+    confirmTitle: "환불 신청하시겠습니까?",
+    confirmMessage: "환불 신청 후, 1~3일 정도 후에\n입금처리됩니다.",
+    submitBtn: "신청",
+    submittedToast: "환불 신청이 완료되었습니다.",
+    completedAlert: "포인트환불 신청이 완료되었습니다.",
+  },
+
   // ─── 지도 ──────────────────────────────────────────────────
   map: {
     title: "지도",

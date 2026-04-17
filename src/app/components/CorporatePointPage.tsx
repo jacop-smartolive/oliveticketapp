@@ -737,10 +737,10 @@ const s: Record<string, CSSProperties> = {
     marginBottom: 16,
   },
   balanceLabel: {
-    fontSize: 13,
-    fontWeight: 500,
-    color: colors.gray2,
-    letterSpacing: -0.36,
+    fontSize: 15,
+    fontWeight: 600,
+    color: colors.black,
+    letterSpacing: -0.3,
   },
   balanceValue: {
     fontSize: 19,

@@ -741,6 +741,70 @@ const vi = {
     bannerSurvey: "Khảo sát Phiếu ăn Olive",
     bannerFavorite: "Thực đơn Yêu thích của bạn",
   },
+  // ─── Trung tâm điểm ──────────────────────────────────────
+  pointHub: {
+    title: "Điểm",
+    corporatePoint: "Điểm doanh nghiệp",
+    corporatePointDesc: "Điểm do công ty cung cấp",
+    olivePoint: "Điểm Olive",
+    olivePointDesc: "Điểm nạp cá nhân",
+    management: "Quản lý điểm",
+    refund: "Hoàn điểm Olive",
+    gift: "Tặng điểm Olive",
+    registerGiftCoupon: "Đăng ký phiếu quà tặng",
+  },
+
+  // ─── Điểm Olive ──────────────────────────────────────────
+  olivePoint: {
+    title: "Điểm Olive",
+    remainingPoint: "Còn lại",
+    chargeRefund: "Nạp/Hoàn",
+    paymentMethod: "Phương thức thanh toán",
+    availableLabel: "Điểm Olive",
+    chargedPoint: "Điểm đã nạp",
+    remainingPointLabel: "Điểm còn lại",
+    chargedAt: "Thời gian nạp",
+    refund: "Hoàn",
+    charge: "Nạp",
+    filterAll: "Tất cả",
+    filterCharge: "Nạp",
+    filterUse: "Sử dụng",
+    filterRefund: "Hoàn",
+    statusUsed: "Đã sử dụng",
+    statusApproved: "Đã duyệt",
+    statusRefunded: "Đã hoàn",
+  },
+
+  // ─── Biên lai điểm Olive ─────────────────────────────────
+  olivePointReceipt: {
+    title: "Biên lai thanh toán điểm Olive",
+    eReceipt: "Biên lai điện tử",
+    businessName: "Doanh nghiệp",
+    transactionAt: "Thời gian giao dịch",
+    approvalNo: "Số phê duyệt",
+    installment: "Trả góp",
+    product: "Sản phẩm",
+    amount: "Số tiền",
+    refundableAmount: "Có thể hoàn",
+    businessNo: "Mã số DN",
+    representative: "Người đại diện",
+    address: "Địa chỉ",
+    contact: "Liên hệ",
+    refund: "Hoàn tiền",
+  },
+
+  // ─── Hoàn điểm Olive ─────────────────────────────────────
+  olivePointRefund: {
+    title: "Hoàn tiền",
+    statusUsed: "Đã sử dụng",
+    refundPoint: "Hoàn điểm",
+    confirmTitle: "Yêu cầu hoàn tiền?",
+    confirmMessage: "Sau khi yêu cầu, khoảng 1~3 ngày\nsẽ được hoàn vào tài khoản.",
+    submitBtn: "Gửi",
+    submittedToast: "Đã gửi yêu cầu hoàn tiền.",
+    completedAlert: "Đã hoàn tất yêu cầu hoàn điểm.",
+  },
+
   // ─── Bản đồ ──────────────────────────────────────────────────
   map: {
     title: "Bản đồ",

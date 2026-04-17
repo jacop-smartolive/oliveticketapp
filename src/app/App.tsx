@@ -39,6 +39,9 @@ import PaymentCompletePage from "./components/PaymentCompletePage";
 import type { PaymentCompleteItem } from "./components/PaymentCompletePage";
 import { Toaster } from "sonner";
 import CorporatePointPage from "./components/CorporatePointPage";
+import PointHubPage from "./components/PointHubPage";
+import OlivePointPage from "./components/OlivePointPage";
+import OlivePointRefundPage from "./components/OlivePointRefundPage";
 import { colors as sharedColors, fontFamily, spacing, radius } from "./shared/tokens";
 import { toastBaseStyle, showSuccessToast, showPlainToast } from "./shared/toast";
 import {
@@ -826,6 +829,27 @@ function AppContent() {
   const [isSticky, setIsSticky] = useState(false);
   const [showQrPayment, setShowQrPayment] = useState(false);
   const [showCorporatePoint, setShowCorporatePoint] = useState(false);
+  const [showPointHub, setShowPointHub] = useState(false);
+  const [showOlivePoint, setShowOlivePoint] = useState(false);
+  const [showOlivePointRefund, setShowOlivePointRefund] = useState(false);
+  const [showRefundCompleteAlert, setShowRefundCompleteAlert] = useState(false);
+  const [refundAlertFadeIn, setRefundAlertFadeIn] = useState(false);
+
+  const handleRefundComplete = () => {
+    setShowPointHub(false);
+    setShowCorporatePoint(false);
+    setShowOlivePoint(false);
+    setShowOlivePointRefund(false);
+    setTimeout(() => {
+      setShowRefundCompleteAlert(true);
+      setTimeout(() => setRefundAlertFadeIn(true), 10);
+    }, 250);
+  };
+
+  const closeRefundAlert = () => {
+    setRefundAlertFadeIn(false);
+    setTimeout(() => setShowRefundCompleteAlert(false), 250);
+  };
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState<MenuDetailData | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentItem | null>(null);
@@ -1199,7 +1223,7 @@ function AppContent() {
 
         {/* ── Points Card ── */}
         <div style={styles.pointsSection}>
-          <div style={{...styles.pointsCard, cursor: "pointer"}} onClick={() => setShowCorporatePoint(true)}>
+          <div style={{...styles.pointsCard, cursor: "pointer"}} onClick={() => setShowPointHub(true)}>
             <p style={styles.pointsLabel}>{t("home.availablePoint")}</p>
             <div style={styles.pointsRight}>
               <p style={styles.pointsValue}>{formatAmountStr("58,690")}</p>
@@ -1625,6 +1649,117 @@ function AppContent() {
       )}
 
 
+
+      {/* ── Point Hub Page ── */}
+      {showPointHub && (
+        <PointHubPage
+          onBack={() => setShowPointHub(false)}
+          onCorporatePointClick={() => setShowCorporatePoint(true)}
+          onOlivePointClick={() => setShowOlivePoint(true)}
+          onRefundClick={() => setShowOlivePointRefund(true)}
+        />
+      )}
+
+      {/* ── Olive Point Page ── */}
+      {showOlivePoint && (
+        <OlivePointPage
+          onBack={() => setShowOlivePoint(false)}
+          onRefundComplete={handleRefundComplete}
+        />
+      )}
+
+      {/* ── Olive Point Refund Page (from hub) ── */}
+      {showOlivePointRefund && (
+        <OlivePointRefundPage
+          onBack={() => setShowOlivePointRefund(false)}
+          onRefundComplete={handleRefundComplete}
+        />
+      )}
+
+      {/* ── Refund Complete Alert ── */}
+      {showRefundCompleteAlert && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(25,26,28,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 500,
+            transition: "opacity 0.25s ease",
+            opacity: refundAlertFadeIn ? 1 : 0,
+            fontFamily,
+          }}
+          onClick={closeRefundAlert}
+        >
+          <div
+            style={{
+              backgroundColor: colors.white,
+              borderRadius: 16,
+              padding: "36px 28px 20px",
+              width: "calc(100% - 80px)",
+              maxWidth: 300,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              transition: "transform 0.25s ease, opacity 0.25s ease",
+              transform: refundAlertFadeIn ? "scale(1)" : "scale(0.92)",
+              opacity: refundAlertFadeIn ? 1 : 0,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                backgroundColor: "#E8F5E9",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M5 13l4 4L19 7" stroke="#34C759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p style={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: colors.black,
+              letterSpacing: -0.3,
+              textAlign: "center",
+              margin: 0,
+              marginBottom: 24,
+            }}>
+              {t("olivePointRefund.completedAlert")}
+            </p>
+            <button
+              style={{
+                width: "100%",
+                height: 48,
+                borderRadius: 12,
+                border: "none",
+                backgroundColor: colors.primary,
+                color: colors.white,
+                fontSize: 16,
+                fontWeight: 700,
+                letterSpacing: -0.16,
+                cursor: "pointer",
+                fontFamily,
+              }}
+              onClick={closeRefundAlert}
+            >
+              {t("common.confirm")}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Corporate Point Page ── */}
       {showCorporatePoint && (
