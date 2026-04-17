@@ -220,11 +220,9 @@ export default function NotificationPage({ onBack, asNavTab }: NotificationPageP
       <div style={styles.header}>
         <div style={styles.headerInner}>
           <div style={styles.headerLeftGroup}>
-            {!asNavTab && (
-              <button onClick={onBack} style={styles.backBtn}>
-                <ChevronLeft size={26} strokeWidth={2.2} color={colors.black} />
-              </button>
-            )}
+            <button onClick={onBack} style={styles.backBtn}>
+              <ChevronLeft size={26} strokeWidth={2.2} color={colors.black} />
+            </button>
             <span style={styles.headerTitle}>{t("notification.title")}</span>
           </div>
           <button

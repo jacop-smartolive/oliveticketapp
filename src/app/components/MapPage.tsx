@@ -2,7 +2,7 @@
  * 지도 페이지 — 주변 식당·카페 검색 (Leaflet 실제 지도)
  */
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, MapPin, Navigation, Building2, Crosshair, Bookmark } from "lucide-react";
+import { ChevronLeft, MapPin, Navigation, Building2, Crosshair, Bookmark, Phone, X } from "lucide-react";
 import type { CSSProperties } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -17,6 +17,9 @@ interface Restaurant {
   id: number;
   name: string;
   address: string;
+  fullAddress: string;
+  distance: string;
+  phone: string;
   badge: string;
   category: "food" | "cafe" | "etc";
   lat: number;
@@ -26,16 +29,16 @@ interface Restaurant {
 
 /* 마곡역 주변 mock 가맹점 */
 const mockRestaurants: Restaurant[] = [
-  { id: 1, name: "옥돌현옥", address: "서울 구로구 · 한식", badge: "현장결제", category: "food", lat: 37.5595, lng: 126.8290, img: "" },
-  { id: 2, name: "소망김밥", address: "서울 구로구 · 분식", badge: "현장결제", category: "food", lat: 37.5610, lng: 126.8275, img: "" },
-  { id: 3, name: "평양냉면", address: "서울 구로구 · 한식", badge: "현장결제", category: "food", lat: 37.5582, lng: 126.8260, img: "" },
-  { id: 4, name: "컴포즈커피", address: "서울 구로구 · 카페", badge: "현장결제", category: "cafe", lat: 37.5600, lng: 126.8310, img: "" },
-  { id: 5, name: "사랑밥상", address: "서울 구로구 · 한식", badge: "현장결제", category: "food", lat: 37.5575, lng: 126.8320, img: "" },
-  { id: 6, name: "벤티프레소", address: "서울 구로구 · 카페", badge: "현장결제", category: "cafe", lat: 37.5615, lng: 126.8305, img: "" },
-  { id: 7, name: "짝귀 한우 마곡발산점", address: "서울 구로구 · 한식", badge: "현장결제", category: "food", lat: 37.5604, lng: 126.8295, img: "" },
-  { id: 8, name: "키볼", address: "서울 구로구 · 분식", badge: "현장결제", category: "food", lat: 37.5608, lng: 126.8300, img: "" },
-  { id: 9, name: "댄싱홍콩 마곡점", address: "서울 구로구 · 중식", badge: "현장결제", category: "food", lat: 37.5568, lng: 126.8285, img: "" },
-  { id: 10, name: "산청숯불가든 마곡", address: "서울 구로구 · 한식", badge: "현장결제", category: "food", lat: 37.5555, lng: 126.8282, img: "" },
+  { id: 1, name: "옥돌현옥", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 공항대로 627 1층", distance: "100m", phone: "02-1234-5678", badge: "현장결제", category: "food", lat: 37.5595, lng: 126.8290, img: "" },
+  { id: 2, name: "소망김밥", address: "서울 구로구 · 분식", fullAddress: "서울 강서구 마곡중앙8로 32", distance: "200m", phone: "02-2345-6789", badge: "현장결제", category: "food", lat: 37.5610, lng: 126.8275, img: "" },
+  { id: 3, name: "평양냉면", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 마곡중앙2로 15", distance: "350m", phone: "02-3456-7890", badge: "현장결제", category: "food", lat: 37.5582, lng: 126.8260, img: "" },
+  { id: 4, name: "컴포즈커피", address: "서울 구로구 · 카페", fullAddress: "서울 강서구 공항대로 지하 1층", distance: "150m", phone: "02-4567-8901", badge: "현장결제", category: "cafe", lat: 37.5600, lng: 126.8310, img: "" },
+  { id: 5, name: "사랑밥상", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 마곡동로3길 28", distance: "400m", phone: "02-5678-9012", badge: "현장결제", category: "food", lat: 37.5575, lng: 126.8320, img: "" },
+  { id: 6, name: "벤티프레소", address: "서울 구로구 · 카페", fullAddress: "서울 강서구 마곡중앙8로 50", distance: "180m", phone: "02-6789-0123", badge: "현장결제", category: "cafe", lat: 37.5615, lng: 126.8305, img: "" },
+  { id: 7, name: "짝귀 한우 마곡발산점", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 공항대로 614 2층", distance: "120m", phone: "02-7890-1234", badge: "현장결제", category: "food", lat: 37.5604, lng: 126.8295, img: "" },
+  { id: 8, name: "키볼", address: "서울 구로구 · 분식", fullAddress: "서울 강서구 마곡중앙6로 20", distance: "130m", phone: "02-8901-2345", badge: "현장결제", category: "food", lat: 37.5608, lng: 126.8300, img: "" },
+  { id: 9, name: "댄싱홍콩 마곡점", address: "서울 구로구 · 중식", fullAddress: "서울 강서구 마곡중앙2로 59 1층", distance: "500m", phone: "02-9012-3456", badge: "현장결제", category: "food", lat: 37.5568, lng: 126.8285, img: "" },
+  { id: 10, name: "산청숯불가든 마곡", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 소명로6길 12", distance: "650m", phone: "02-0123-4567", badge: "현장결제", category: "food", lat: 37.5555, lng: 126.8282, img: "" },
 ];
 
 const MAP_CENTER: [number, number] = [37.5595, 126.8290];
@@ -144,13 +147,57 @@ const myLocationIcon = L.divIcon({
   html: `<div style="width:20px;height:20px;position:relative;display:flex;align-items:center;justify-content:center"><div style="width:14px;height:14px;border-radius:50%;background:${colors.blue};border:2.5px solid white;box-shadow:0 0 0 1px rgba(29,138,255,0.3),0 2px 6px rgba(0,0,0,0.2);z-index:2"></div><div style="position:absolute;width:36px;height:36px;border-radius:50%;background:rgba(29,138,255,0.12);z-index:1"></div></div>`,
 });
 
+/* 바텀시트 높이 (%) */
+const SHEET_PEEK = 35;    /* 접힌 상태 */
+const SHEET_EXPAND = 75;  /* 펼친 상태 */
+
 export default function MapPage({ onBack }: MapPageProps) {
   const [locationFilter, setLocationFilter] = useState<LocationFilter>("nearby");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [sheetHeight, setSheetHeight] = useState(SHEET_PEEK);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(0);
+  const dragStartHeight = useRef(SHEET_PEEK);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const isExpanded = sheetHeight >= SHEET_EXPAND - 1;
+
+  const handleDragStart = (clientY: number) => {
+    setIsDragging(true);
+    dragStartY.current = clientY;
+    dragStartHeight.current = sheetHeight;
+  };
+  const handleDragMove = (clientY: number) => {
+    if (!isDragging) return;
+    const deltaPercent = ((dragStartY.current - clientY) / window.innerHeight) * 100;
+    const next = Math.min(SHEET_EXPAND, Math.max(SHEET_PEEK, dragStartHeight.current + deltaPercent));
+    setSheetHeight(next);
+  };
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    const mid = (SHEET_PEEK + SHEET_EXPAND) / 2;
+    setSheetHeight(sheetHeight > mid ? SHEET_EXPAND : SHEET_PEEK);
+  };
+
+  /* 리스트 영역 터치: 펼쳐지지 않았으면 시트 드래그, 펼쳐졌으면 스크롤 (스크롤 top이면 다시 드래그) */
+  const handleListTouchStart = (e: React.TouchEvent) => {
+    const scrollEl = listScrollRef.current;
+    if (!isExpanded || (scrollEl && scrollEl.scrollTop <= 0)) {
+      handleDragStart(e.touches[0].clientY);
+    }
+  };
+  const handleListTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    handleDragMove(e.touches[0].clientY);
+    e.preventDefault();
+  };
+  const handleListTouchEnd = () => {
+    if (isDragging) handleDragEnd();
+  };
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -222,7 +269,7 @@ export default function MapPage({ onBack }: MapPageProps) {
         </div>
 
         {/* Right side action buttons */}
-        <div style={s.filterGroup}>
+        <div style={{ ...s.filterGroup, bottom: `calc(${sheetHeight}% + 26px)` }}>
           <button style={s.companyBtn}>
             <Crosshair size={17} strokeWidth={2} color={colors.gray1} />
             <span style={s.companyBtnLabel}>내위치</span>
@@ -234,14 +281,99 @@ export default function MapPage({ onBack }: MapPageProps) {
         </div>
       </div>
 
-      {/* ── Restaurant List ── */}
-      <div style={s.listArea}>
-        <div style={s.listHeader}>
+      {/* ── Store Detail Panel ── */}
+      {selectedId && (() => {
+        const store = mockRestaurants.find(r => r.id === selectedId);
+        if (!store) return null;
+        const closeStore = () => {
+          setSelectedId(null);
+          markersRef.current.forEach((m, i) => {
+            m.setIcon(createMarkerIcon(mockRestaurants[i].category, mockRestaurants[i].name, false));
+          });
+        };
+        return (
+          <div style={s.storePanel}>
+            {/* Handle bar */}
+            <div style={s.sheetHandle}><div style={s.sheetHandleBar} /></div>
+            {/* Badge + buttons row */}
+            <div style={s.storePanelTopRow}>
+              <span style={s.storePanelBadge}>{store.badge}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button style={s.storePanelCircleBtn}>
+                  <Phone size={16} strokeWidth={0} fill={colors.gray1} color={colors.gray1} />
+                </button>
+                <button style={s.storePanelCircleBtn} onClick={closeStore}>
+                  <X size={18} strokeWidth={2.5} color={colors.gray1} />
+                </button>
+              </div>
+            </div>
+            {/* Name */}
+            <div style={s.storePanelNameRow}>
+              <span style={s.storePanelName}>{store.name}</span>
+            </div>
+            {/* Info */}
+            <div style={s.storePanelContent}>
+              <div style={s.storePanelInfoRow}>
+                <span style={s.storePanelLabel}>위치</span>
+                <span style={s.storePanelValue}>현재 위치기준 <span style={{ color: colors.primary, fontWeight: 600 }}>{store.distance}</span></span>
+              </div>
+              <div style={s.storePanelInfoRow}>
+                <span style={s.storePanelLabel}>주소</span>
+                <span style={s.storePanelValue}>{store.fullAddress}</span>
+              </div>
+            </div>
+            {/* Buttons */}
+            <div style={s.storePanelBtnGroup}>
+              <button style={s.storePanelBtnOutline}>길 찾기</button>
+              <button style={s.storePanelBtnPrimary}>주문하기</button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Restaurant List (Bottom Sheet) ── */}
+      {!selectedId && (
+      <div
+        style={{
+          ...s.listArea,
+          height: `${sheetHeight}%`,
+          transition: isDragging ? "none" : "height 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+      >
+        {/* Drag handle */}
+        <div
+          style={s.sheetHandle}
+          onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
+          onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
+          onTouchEnd={handleDragEnd}
+          onMouseDown={(e) => {
+            handleDragStart(e.clientY);
+            const onMove = (ev: MouseEvent) => handleDragMove(ev.clientY);
+            const onUp = () => { handleDragEnd(); window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+            window.addEventListener("mousemove", onMove);
+            window.addEventListener("mouseup", onUp);
+          }}
+        >
+          <div style={s.sheetHandleBar} />
+        </div>
+
+        <div
+          style={s.listHeader}
+          onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
+          onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
+          onTouchEnd={handleDragEnd}
+        >
           <span style={s.listTitle}>주변 식당 · 카페</span>
           <span style={s.listCount}>{mockRestaurants.length}곳</span>
         </div>
 
-        <div style={s.listScroll}>
+        <div
+          ref={listScrollRef}
+          style={{ ...s.listScroll, WebkitOverflowScrolling: "touch" as any, overflowY: isExpanded ? "auto" : "hidden" }}
+          onTouchStart={handleListTouchStart}
+          onTouchMove={handleListTouchMove}
+          onTouchEnd={handleListTouchEnd}
+        >
           {mockRestaurants.map((r) => (
             <div
               key={r.id}
@@ -292,6 +424,7 @@ export default function MapPage({ onBack }: MapPageProps) {
           ))}
         </div>
       </div>
+      )}
     </div>
   );
 }
@@ -300,22 +433,20 @@ export default function MapPage({ onBack }: MapPageProps) {
 const leafletStyles = `
   .leaflet-container {
     font-family: 'Pretendard', sans-serif !important;
+    z-index: 1 !important;
   }
 `;
 
 /* ── Styles ── */
 const s: Record<string, CSSProperties> = {
   overlay: {
-    position: "fixed",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    zIndex: 200,
+    flex: 1,
     display: "flex",
     flexDirection: "column",
     backgroundColor: colors.white,
     fontFamily,
+    overflow: "hidden",
+    position: "relative",
   },
 
   /* Header */
@@ -361,9 +492,8 @@ const s: Record<string, CSSProperties> = {
   /* Map Area */
   mapArea: {
     position: "relative",
-    height: "45%",
-    minHeight: 280,
-    flexShrink: 0,
+    flex: 1,
+    minHeight: 0,
   },
   mapContainer: {
     width: "100%",
@@ -396,12 +526,11 @@ const s: Record<string, CSSProperties> = {
   /* Filter Buttons */
   filterGroup: {
     position: "absolute",
-    bottom: 16,
     right: 16,
     display: "flex",
     flexDirection: "column",
     gap: 8,
-    zIndex: 1000,
+    zIndex: 200,
   },
   filterCircleBtn: {
     width: 40,
@@ -443,12 +572,33 @@ const s: Record<string, CSSProperties> = {
     lineHeight: 1,
   },
 
-  /* List Area */
+  /* List Area (Bottom Sheet) */
   listArea: {
-    flex: 1,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     display: "flex",
     flexDirection: "column",
-    minHeight: 0,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    boxShadow: "0 -4px 16px rgba(0,0,0,0.1)",
+    zIndex: 300,
+  },
+  sheetHandle: {
+    display: "flex",
+    justifyContent: "center",
+    paddingTop: 10,
+    paddingBottom: 6,
+    cursor: "grab",
+    touchAction: "none",
+  },
+  sheetHandleBar: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.gray3,
   },
   listHeader: {
     display: "flex",
@@ -474,9 +624,11 @@ const s: Record<string, CSSProperties> = {
   listScroll: {
     flex: 1,
     overflowY: "auto",
+    overflowX: "hidden",
     paddingLeft: spacing.xl,
     paddingRight: spacing.xl,
-    paddingBottom: 24,
+    paddingBottom: 40,
+    minHeight: 0,
   },
 
   /* Card */
@@ -484,9 +636,9 @@ const s: Record<string, CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 14,
-    paddingBottom: 14,
-    borderBottom: `1px solid ${colors.gray5}`,
+    paddingTop: 20,
+    paddingBottom: 20,
+    borderBottom: `1px solid ${colors.gray6}`,
     cursor: "pointer",
   },
   cardSelected: {
@@ -525,14 +677,14 @@ const s: Record<string, CSSProperties> = {
     letterSpacing: -0.16,
   },
   cardAddress: {
-    fontSize: 13,
+    fontSize: 14,
     color: colors.gray1,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   cardBadge: {
     display: "inline-flex",
     alignItems: "center",
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 600,
     color: colors.blue,
     backgroundColor: "rgba(29, 138, 255, 0.08)",
@@ -544,6 +696,137 @@ const s: Record<string, CSSProperties> = {
     alignSelf: "flex-start",
     marginTop: 2,
   },
+  /* Store Detail Panel */
+  storePanel: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    boxShadow: "0 -4px 16px rgba(0,0,0,0.1)",
+    zIndex: 300,
+    display: "flex",
+    flexDirection: "column",
+  },
+  storePanelTopRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingLeft: spacing.xl,
+    paddingRight: spacing.xl,
+    paddingBottom: 6,
+  },
+  storePanelBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    fontSize: 12,
+    fontWeight: 600,
+    color: colors.blue,
+    backgroundColor: "rgba(29, 138, 255, 0.08)",
+    borderRadius: radius.full,
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  storePanelNameRow: {
+    paddingLeft: spacing.xl,
+    paddingRight: spacing.xl,
+    paddingBottom: 14,
+  },
+  storePanelName: {
+    fontSize: 19,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.16,
+  },
+  storePanelCircleBtn: {
+    width: 36,
+    height: 36,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.gray6,
+    border: "none",
+    borderRadius: "50%",
+    padding: 0,
+    cursor: "pointer",
+  },
+  storePanelContent: {
+    paddingLeft: spacing.xl,
+    paddingRight: spacing.xl,
+    paddingBottom: 16,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  storePanelPhoneBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "transparent",
+    border: `1.5px solid ${colors.black}`,
+    borderRadius: radius.full,
+    paddingLeft: 14,
+    paddingRight: 14,
+    paddingTop: 7,
+    paddingBottom: 7,
+    cursor: "pointer",
+  },
+  storePanelInfoRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 16,
+    alignItems: "flex-start",
+  },
+  storePanelLabel: {
+    fontSize: 13,
+    color: colors.gray2,
+    fontWeight: 500,
+    letterSpacing: -0.2,
+    minWidth: 32,
+    flexShrink: 0,
+  },
+  storePanelValue: {
+    fontSize: 15,
+    color: colors.black,
+    fontWeight: 600,
+    letterSpacing: -0.3,
+    lineHeight: 1.5,
+  },
+  storePanelBtnGroup: {
+    display: "flex",
+    gap: 10,
+    paddingLeft: spacing.xl,
+    paddingRight: spacing.xl,
+    paddingTop: 8,
+    paddingBottom: 24,
+  },
+  storePanelBtnOutline: {
+    flex: 1,
+    height: 50,
+    borderRadius: radius.md,
+    border: `1px solid ${colors.primary}`,
+    backgroundColor: "transparent",
+    color: colors.primary,
+    fontSize: 17,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  storePanelBtnPrimary: {
+    flex: 1,
+    height: 50,
+    borderRadius: radius.md,
+    border: "none",
+    backgroundColor: colors.primary,
+    color: colors.white,
+    fontSize: 17,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+
   cardBookmark: {
     width: 40,
     height: 40,
@@ -554,8 +837,8 @@ const s: Record<string, CSSProperties> = {
     cursor: "pointer",
   },
   cardImgPlaceholder: {
-    width: 64,
-    height: 64,
+    width: 82,
+    height: 82,
     borderRadius: radius.md,
     backgroundColor: colors.gray6,
     display: "flex",

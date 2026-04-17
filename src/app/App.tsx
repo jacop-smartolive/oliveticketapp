@@ -819,7 +819,7 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<HomeTab>(HomeTab.CAFETERIA);
   const [mealTime, setMealTime] = useState<MealTime>(MealTime.LUNCH);
   const [activeNav, setActiveNav] = useState<
-    "home" | "receipt" | "notification" | "my"
+    "home" | "receipt" | "notification" | "my" | "map"
   >("home"); // 홈 화면 기본 표시
   const [selectedDate, setSelectedDate] = useState("26");
   const [tappedDate, setTappedDate] = useState<string | null>(null);
@@ -1085,7 +1085,7 @@ function AppContent() {
               </span>
             )}
           </button>
-          <button style={styles.iconBtn} onClick={() => setShowMap(true)}>
+          <button style={styles.iconBtn} onClick={() => setActiveNav("map")}>
             <MapPin
               size={24}
               strokeWidth={2.2}
@@ -1124,9 +1124,13 @@ function AppContent() {
       {activeNav === "notification" && (
         <NotificationPage asNavTab onBack={() => setActiveNav("home")} />
       )}
+      {/* ── Map Nav Tab ── */}
+      {activeNav === "map" && (
+        <MapPage onBack={() => setActiveNav("home")} />
+      )}
 
       {/* ── Scroll Area ── */}
-      {activeNav !== "notification" && (
+      {activeNav !== "notification" && activeNav !== "map" && (
       <div
         style={{
           ...styles.scrollArea,
@@ -1648,10 +1652,6 @@ function AppContent() {
         <DocsPage onBack={() => setShowDocs(false)} />
       )}
 
-      {/* ── Map Page ── */}
-      {showMap && (
-        <MapPage onBack={() => setShowMap(false)} />
-      )}
 
       {/* ── Menu Detail Page ── */}
       {selectedMenu && (
