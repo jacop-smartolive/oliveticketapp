@@ -1,529 +1,378 @@
+/**
+ * QR 결제 페이지 (신버전) — 구버전 디자인 이식
+ * 구내식당 / 프랜차이즈 2탭, 체크박스형 포인트(기업+올리브),
+ * 브랜드 스와이프, 바코드/QR 전체화면, 센터 결제완료 팝업.
+ * QR 코드는 동적 생성(QrCodeSvg) 유지.
+ */
 import { useState, useEffect, useMemo } from "react";
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, RefreshCw, X, Check, Circle, Bell } from "lucide-react";
-import img from "figma:asset/5af74d6eee4a267ca2ecf406c0973d3b9d4fe038.png";
-import QrIcon from "../../imports/QrIcon";
-import PointApplicationPage from "./PointApplicationPage";
+import { ChevronLeft, ChevronRight, Bell, X } from "lucide-react";
 import { colors, fontFamily, spacing, radius, headerTitleBase } from "../shared/tokens";
 import { formatAmountStr } from "../shared/formatters";
+import barcodeImg from "../../assets/barcode.png";
+import roundEmart24Logo from "../../assets/brands/round_emart24.png";
+import roundCuLogo from "../../assets/brands/round_cu.png";
+import roundSevenelevenLogo from "../../assets/brands/round_seveneleven.png";
+import roundParisbaguetteLogo from "../../assets/brands/round_parisbaguette.png";
+import roundBonjukLogo from "../../assets/brands/round_bonjuk.png";
+
+type PaymentTab = "franchise" | "cafeteria";
 
 interface QrPaymentPageProps {
   onBack: () => void;
+  initialTab?: PaymentTab;
 }
 
-// ─── Point Policies (same as CorporatePointPage) ─────────────
-interface PointPolicy {
-  id: number;
-  title: string;
-  statusLabelKey: string;
-  available: boolean;
-  remainingPoint: string;
-  daysKey: string;
-  timeKey: string;
-  limitPerUseKey?: string;
-  limitPerDayKey?: string;
-  expiryKey?: string;
-  approvalKey?: string;
-}
-
-function getQrPointPolicies(t: (key: string) => string): PointPolicy[] {
-  return [
-    {
-      id: 1,
-      title: t("mock.lunchEmployee"),
-      statusLabelKey: "corporatePoint.currentlyAvailable",
-      available: true,
-      remainingPoint: "29,000",
-      daysKey: "corporatePoint.policyDaysAll",
-      timeKey: "corporatePoint.policyTimeAll",
-      limitPerUseKey: "corporatePoint.noLimit",
-      limitPerDayKey: "corporatePoint.noLimit",
-      expiryKey: "corporatePoint.expiryUnlimited",
-      approvalKey: "corporatePoint.approvalNotRequired",
-    },
-    {
-      id: 2,
-      title: t("mock.dinnerEmployee"),
-      statusLabelKey: "corporatePoint.currentlyAvailable",
-      available: true,
-      remainingPoint: "29,000",
-      daysKey: "corporatePoint.policyDaysAll",
-      timeKey: "corporatePoint.policyTimeAll",
-      limitPerUseKey: "corporatePoint.noLimit",
-      limitPerDayKey: "corporatePoint.noLimit",
-      expiryKey: "corporatePoint.expiryUnlimited",
-      approvalKey: "corporatePoint.approvalRequired",
-    },
-    {
-      id: 3,
-      title: t("mock.dinnerEmployee"),
-      statusLabelKey: "corporatePoint.unavailable",
-      available: false,
-      remainingPoint: "29,000",
-      daysKey: "corporatePoint.policyDaysAll",
-      timeKey: "corporatePoint.policyTimeAll",
-      limitPerUseKey: "corporatePoint.noLimit",
-      limitPerDayKey: "corporatePoint.noLimit",
-      expiryKey: "corporatePoint.expiryUnlimited",
-      approvalKey: "corporatePoint.approvalNotRequired",
-    },
-  ];
-}
-
-export default function QrPaymentPage({ onBack }: QrPaymentPageProps) {
+export default function QrPaymentPage({
+  onBack,
+  initialTab = "cafeteria",
+}: QrPaymentPageProps) {
   const { t } = useTranslation();
-  const pointPolicies = getQrPointPolicies(t);
-  const [timeLeft, setTimeLeft] = useState(164); // 2:44
-  const [qrSeed, setQrSeed] = useState(42);
-  const [spinCount, setSpinCount] = useState(0);
+  const [activeTab, setActiveTab] = useState<PaymentTab>(initialTab);
+  const [remainingTime, setRemainingTime] = useState(150); // 2:30
+  const [corporateChecked, setCorporateChecked] = useState(true);
+  const [oliveChecked, setOliveChecked] = useState(false);
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
-  const [paymentDone, setPaymentDone] = useState(false);
-  const [showPointApplication, setShowPointApplication] = useState(false);
+  const [showBarcodeFullscreen, setShowBarcodeFullscreen] = useState(false);
+  const [showQrFullscreen, setShowQrFullscreen] = useState(false);
 
+  // 카운트다운 타이머
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setRemainingTime((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
-  }, [qrSeed]);
+  }, []);
 
-  const handleRefresh = () => {
-    setSpinCount((prev) => prev + 1);
-    setQrSeed((prev) => prev + Math.floor(Math.random() * 1000) + 1);
-    setTimeLeft(180); // 3분 리셋
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const sec = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${sec}`;
   };
 
-  const minutes = String(Math.floor(timeLeft / 60)).padStart(2, "0");
-  const seconds = String(timeLeft % 60).padStart(2, "0");
-  const isExpired = timeLeft === 0;
+  const isFranchise = activeTab === "franchise";
+  // 프랜차이즈에서는 올리브포인트 사용불가
+  const oliveDisabled = isFranchise;
+
+  const brands = [
+    { name: "이마트24", logo: roundEmart24Logo },
+    { name: "CU", logo: roundCuLogo },
+    { name: "세븐일레븐", logo: roundSevenelevenLogo },
+    { name: "파리바게트", logo: roundParisbaguetteLogo },
+    { name: "본죽&비빔밥", logo: roundBonjukLogo },
+  ];
 
   return (
-    <div style={pageStyles.screen}>
+    <div style={s.overlay}>
       {/* ── Header ── */}
-      <div style={pageStyles.header}>
-        <div style={pageStyles.headerInner}>
-          <div style={pageStyles.headerLeftGroup}>
-            <button onClick={onBack} style={pageStyles.backBtn}>
+      <div style={s.header}>
+        <div style={s.headerInner}>
+          <div style={s.headerLeftGroup}>
+            <button style={s.backBtn} onClick={onBack}>
               <ChevronLeft size={26} strokeWidth={2.2} color={colors.black} />
             </button>
-            <span style={pageStyles.headerTitle}>{t("qrPay.headerTitle")}</span>
+            <span style={s.headerTitle}>{t("qrPay.headerTitle")}</span>
           </div>
-          <button onClick={handleRefresh} style={pageStyles.refreshBtn}>
-            <RefreshCw
-              size={20}
-              strokeWidth={2.2}
-              color={colors.black}
-              style={{
-                transform: `rotate(${spinCount * 180}deg)`,
-              }}
-            />
-          </button>
+        </div>
+      </div>
+
+      {/* ── Tab Bar ── */}
+      <div style={s.tabBarWrap}>
+        <div style={s.tabBar}>
+          {(["cafeteria", "franchise"] as const).map((tab) => {
+            const active = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                style={{
+                  ...s.tabItem,
+                  fontWeight: active ? 700 : 500,
+                  color: active ? colors.black : colors.gray3,
+                }}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setCorporateChecked(true);
+                }}
+              >
+                {tab === "franchise" ? t("qrPay.tabFranchise") : t("qrPay.tabCafeteria")}
+                {active && <span style={s.tabIndicator} />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* ── Scroll Content ── */}
-      <div style={pageStyles.scrollArea}>
-        {/* ── Event Banner ── */}
-        <div style={pageStyles.bannerSection}>
-          <div style={pageStyles.bannerWrap}>
-            <img
-              src={img}
-              alt="event banner"
-              style={pageStyles.bannerImg}
-            />
-            <div style={pageStyles.bannerOverlay}>
-              <p style={pageStyles.bannerTag}>OPEN EVENT</p>
-              <p style={pageStyles.bannerSub}>{t("qrPay.surveyBannerSub")}</p>
-              <p style={pageStyles.bannerTitle}>{t("qrPay.surveyBannerTitle")}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── QR Code Card ── */}
-        <div style={pageStyles.qrSection}>
-          <div style={pageStyles.qrCard}>
-            {showPaymentPopup ? (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{
-                  width: 68,
-                  height: 68,
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  <Circle size={68} strokeWidth={1.6} color="#00C853" style={{ position: "absolute" }} />
-                  <Check size={34} strokeWidth={2.5} color="#00C853" />
+      <div style={s.scroll}>
+        {/* QR / Barcode Card */}
+        <div style={s.qrCard}>
+          {isFranchise ? (
+            <>
+              {/* 프랜차이즈: 바코드 + QR 일렬 배치 */}
+              <div style={s.barcodeQrRow}>
+                <div style={s.barcodeAreaInline} onClick={() => setShowBarcodeFullscreen(true)}>
+                  <img
+                    src={barcodeImg}
+                    alt="barcode"
+                    style={{ width: "100%", height: "100%", display: "block", cursor: "pointer" }}
+                  />
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 500, color: colors.black, letterSpacing: -0.14 }}>
-                  {t("qrPay.paymentComplete")}
-                </span>
+                <div style={s.qrAreaInline} onClick={() => setShowQrFullscreen(true)}>
+                  <QrCodeSvg size={80} seed={42} />
+                </div>
               </div>
-            ) : (
-              <>
-                <div style={{
-                  ...pageStyles.qrImgWrap,
-                  opacity: isExpired ? 0.25 : 1,
-                }}
-                  onClick={() => { if (!isExpired) { setPaymentDone(true); setShowPaymentPopup(true); } }}
-                >
-                  <QrCodeSvg size={150} seed={qrSeed} />
-                </div>
-                {isExpired ? (
-                  <button onClick={handleRefresh} style={pageStyles.expiredBtn}>
-                    {t("qrPay.qrRefresh")}
-                  </button>
-                ) : (
-                  <p style={pageStyles.timerText}>
-                    {t("qrPay.qrValidTime")}{"  "}
-                    <span style={pageStyles.timerValue}>
-                      {minutes}:{seconds}
-                    </span>
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-        </div>
 
-        {/* ── Points Card ── */}
-        <div style={pageStyles.pointsSection}>
-          <div style={pageStyles.pointsCard}>
-            <span style={pageStyles.pointsLabel}>{t("qrPay.availablePoint")}</span>
-            <div style={pageStyles.pointsRight}>
-              <span style={pageStyles.pointsValue}>{formatAmountStr("58,690")}</span>
-              <ChevronRight
-                size={14}
-                strokeWidth={2.5}
-                color={colors.gray1}
-              />
-            </div>
-          </div>
-          {!showPaymentPopup && (
-            <div style={pageStyles.alertChipWrap}>
-              <div style={pageStyles.alertChipArrow} />
-              <button
-                onClick={() => setShowPaymentPopup(true)}
-                style={pageStyles.alertMiniBtn}
-              >
-                <Bell size={13} strokeWidth={2.4} color="#fff" />
-                <span>{t("qrPay.qrDebugPopup")}</span>
-              </button>
-            </div>
+              <div style={s.dividerFull} />
+
+              {/* 이용 가능 브랜드 */}
+              <div style={s.brandSection}>
+                <span style={s.brandLabel}>{t("qrPay.availableBrands")}</span>
+                <div style={s.brandSwipeWrap}>
+                  <div style={s.brandSwipeRow}>
+                    {brands.map((brand) => (
+                      <div key={brand.name} style={s.brandItem}>
+                        <img src={brand.logo} alt={brand.name} style={s.brandRoundLogo} />
+                        <span style={s.brandName}>{brand.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={s.brandFadeLeft} />
+                  <div style={s.brandFadeRight} />
+                </div>
+              </div>
+
+              {/* 구분선 + 남은시간 */}
+              <div style={s.timerSection}>
+                <div style={s.dividerFull} />
+                <div style={s.timerRow}>
+                  <span style={s.timerLabel}>{t("qrPay.remainingTime")}</span>
+                  <span style={s.timerValue}>{formatTime(remainingTime)}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* 구내식당: QR만 */}
+              <div style={{ ...s.qrArea, width: 200, height: 200 }}>
+                <QrCodeSvg size={200} seed={42} />
+              </div>
+
+              {/* 구분선 + 남은시간 */}
+              <div style={s.timerSection}>
+                <div style={s.dividerFull} />
+                <div style={s.timerRow}>
+                  <span style={s.timerLabel}>{t("qrPay.remainingTime")}</span>
+                  <span style={s.timerValue}>{formatTime(remainingTime)}</span>
+                </div>
+              </div>
+            </>
           )}
         </div>
+
+        {/* ── 말풍선 (남은시간 바로 아래, 겹침) ── */}
+        {!showPaymentPopup && (
+          <div style={s.alertChipWrap}>
+            <div style={s.alertChipArrow} />
+            <button onClick={() => setShowPaymentPopup(true)} style={s.alertMiniBtn}>
+              <Bell size={13} strokeWidth={2.4} color="#fff" />
+              <span>{t("qrPay.paymentTest")}</span>
+            </button>
+          </div>
+        )}
+
+        {/* ── 기업 포인트 ── */}
+        <div
+          style={{ ...s.pointCard, cursor: "pointer" }}
+          onClick={() => setCorporateChecked(!corporateChecked)}
+        >
+          <div style={s.pointLeft}>
+            <div style={{
+              ...s.checkbox,
+              backgroundColor: corporateChecked ? colors.primary : "transparent",
+              border: `2px solid ${corporateChecked ? colors.primary : colors.gray3}`,
+            }}>
+              <CheckMark color={corporateChecked ? "white" : colors.gray3} />
+            </div>
+            <span style={s.pointLabel}>{t("qrPay.corpPoint")}</span>
+          </div>
+          <div style={s.pointRight}>
+            <span style={{ ...s.pointValue, color: colors.black }}>{formatAmountStr("58,690")}</span>
+            <ChevronRight size={14} strokeWidth={2} color={colors.gray2} />
+          </div>
+        </div>
+
+        {/* ── 올리브 포인트 ── */}
+        <div
+          style={{
+            ...s.pointCard,
+            backgroundColor: oliveDisabled ? "#F7F7F7" : colors.white,
+            cursor: oliveDisabled ? "default" : "pointer",
+          }}
+          onClick={() => {
+            if (!oliveDisabled) setOliveChecked(!oliveChecked);
+          }}
+        >
+          <div style={s.pointLeft}>
+            <div style={{
+              ...s.checkbox,
+              backgroundColor: !oliveDisabled && oliveChecked ? colors.primary : "transparent",
+              border: `2px solid ${oliveDisabled ? "#D1D1D1" : oliveChecked ? colors.primary : colors.gray3}`,
+            }}>
+              <CheckMark color={!oliveDisabled && oliveChecked ? "white" : "#D1D1D1"} />
+            </div>
+            <span style={{
+              ...s.pointLabel,
+              color: oliveDisabled ? colors.gray3 : colors.gray1,
+            }}>{t("qrPay.olivePoint")}</span>
+            {oliveDisabled && <span style={s.disabledBadge}>{t("qrPay.olivePointDisabled")}</span>}
+          </div>
+          <div style={s.pointRight}>
+            <span style={{
+              ...s.pointValue,
+              color: oliveDisabled ? colors.gray3 : colors.black,
+            }}>{formatAmountStr("58,690")}</span>
+            <ChevronRight size={14} strokeWidth={2} color={oliveDisabled ? colors.gray3 : colors.gray2} />
+          </div>
+        </div>
+
+        {/* 하단 여백 */}
+        <div style={{ height: 40 }} />
       </div>
 
-      {/* ── Payment Complete Popup ── */}
+      {/* ── 하단 버튼 (구내식당만) ── */}
+      {!isFranchise && (
+        <div style={s.bottomBar}>
+          <button style={s.chargeBtn}>
+            <span style={s.chargePIcon}>P</span>
+            {t("qrPay.oliveCharge")}
+          </button>
+        </div>
+      )}
+
+      {/* ── 바코드 전체화면 ── */}
+      {showBarcodeFullscreen && (
+        <div style={s.fullOverlay}>
+          <button style={s.fullCloseTopRight} onClick={() => setShowBarcodeFullscreen(false)}>
+            <X size={22} strokeWidth={2.2} color={colors.white} />
+          </button>
+          <div style={s.barcodeFullRow}>
+            <span style={s.barcodeFullTimer}>
+              {t("qrPay.remainingTime")}{" "}
+              <span style={{ color: colors.primary, fontWeight: 700 }}>{formatTime(remainingTime)}</span>
+            </span>
+            <div style={s.barcodeFullCard}>
+              <img src={barcodeImg} alt="barcode" style={s.barcodeFullImg} />
+            </div>
+            <span style={s.barcodeFullNumber}>2810 0602 5142 8541 3258 1532</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── QR 전체화면 (프랜차이즈) ── */}
+      {showQrFullscreen && (
+        <div style={s.fullOverlay}>
+          <button style={s.fullCloseTopRight} onClick={() => setShowQrFullscreen(false)}>
+            <X size={22} strokeWidth={2.2} color={colors.white} />
+          </button>
+          <div style={s.qrFullCenter}>
+            <div style={s.qrFullCard}>
+              <QrCodeSvg size={248} seed={42} />
+            </div>
+          </div>
+          <div style={s.fullTimerRow}>
+            <span style={s.fullTimerLabel}>{t("qrPay.remainingTime")}</span>
+            <span style={s.fullTimerValue}>{formatTime(remainingTime)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── 결제완료 팝업 ── */}
       {showPaymentPopup && (
         <PaymentCompletePopup
           onClose={() => setShowPaymentPopup(false)}
-          onAdditionalPay={() => {
-            setShowPaymentPopup(false);
-            handleRefresh();
-          }}
-        />
-      )}
-
-      {/* ── Bottom Fixed Button ── */}
-      <div style={pageStyles.bottomBar}>
-        <button style={pageStyles.chargeBtn} onClick={() => setShowPointApplication(true)}>
-          <span style={pageStyles.chargePIcon}>P</span>
-          {t("corporatePoint.applyPoint")}
-        </button>
-      </div>
-
-      {/* ── Point Application Page ── */}
-      {showPointApplication && (
-        <PointApplicationPage
-          onBack={() => setShowPointApplication(false)}
-          policies={pointPolicies}
-          onSubmit={() => setShowPointApplication(false)}
+          type={activeTab}
         />
       )}
     </div>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────
-const pageStyles: Record<string, CSSProperties> = {
-  screen: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    display: "flex",
-    flexDirection: "column",
-    backgroundColor: colors.bg,
-    fontFamily,
-    zIndex: 100,
-  },
-  header: {
-    display: "flex",
-    flexDirection: "column",
-    backgroundColor: colors.white,
-    paddingLeft: spacing.md,
-    paddingRight: spacing.lg,
-    height: 54,
-    justifyContent: "center",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-    zIndex: 10,
-  },
-  headerInner: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerLeftGroup: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  backBtn: {
-    width: 30,
-    height: 30,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
-    border: "none",
-    padding: 0,
-  },
-  refreshBtn: {
-    width: 30,
-    height: 30,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
-    border: "none",
-    padding: 0,
-  },
-  headerTitle: {
-    ...headerTitleBase,
-    color: colors.black,
-  },
-  scrollArea: {
-    flex: 1,
-    overflowY: "auto",
-  },
-  bannerSection: {
-    paddingLeft: spacing.lg,
-    paddingRight: spacing.lg,
-    paddingTop: spacing.xl,
-  },
-  bannerWrap: {
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: 12,
-    height: 101,
-  },
-  bannerImg: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-  },
-  bannerOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    paddingLeft: spacing.xl + 10,
-    paddingRight: 120,
-  },
-  bannerTag: {
-    fontSize: 11,
-    fontWeight: 400,
-    color: colors.white,
-    marginBottom: spacing.xs,
-  },
-  bannerSub: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: colors.white,
-    marginBottom: 2,
-    letterSpacing: -0.4,
-  },
-  bannerTitle: {
-    fontSize: 20,
-    fontWeight: 800,
-    color: colors.white,
-    letterSpacing: -0.5,
-  },
-  qrSection: {
-    paddingLeft: spacing.lg,
-    paddingRight: spacing.lg,
-    paddingTop: spacing.lg,
-  },
-  qrCard: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    boxShadow: "0 0 10px rgba(234,234,234,0.7)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    paddingTop: 40,
-    paddingBottom: 32,
-  },
-  qrImgWrap: {
-    width: 160,
-    height: 160,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xl,
-  },
-  timerText: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: colors.primary,
-    letterSpacing: -0.15,
-    textAlign: "center",
-  },
-  timerValue: {
-    fontWeight: 700,
-  },
-  expiredBtn: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingLeft: spacing.xl,
-    paddingRight: spacing.xl,
-    paddingTop: spacing.sm + 2,
-    paddingBottom: spacing.sm + 2,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    border: "none",
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: 700,
-    letterSpacing: -0.14,
-  },
-  pointsSection: {
-    paddingLeft: spacing.lg,
-    paddingRight: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.lg,
-  },
-  pointsCard: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    boxShadow: "0 0 10px rgba(234,234,234,0.7)",
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingLeft: spacing.xl,
-    paddingRight: spacing.xl,
-    paddingTop: spacing.lg + 2,
-    paddingBottom: spacing.lg + 2,
-  },
-  pointsLabel: {
-    fontSize: 15,
-    fontWeight: 600,
-    color: colors.gray1,
-    letterSpacing: -0.13,
-  },
-  pointsRight: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  pointsValue: {
-    fontSize: 17,
-    fontWeight: 700,
-    letterSpacing: -0.16,
-  },
-  bottomBar: {
-    position: "relative",
-    zIndex: 10,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    boxShadow: "0 -1px 8px rgba(163,163,163,0.6)",
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  alertChipWrap: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    marginTop: 12,
-    position: "relative",
-  },
-  alertMiniBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    paddingLeft: 14,
-    paddingRight: 14,
-    height: 32,
-    backgroundColor: "#3478F6",
-    borderRadius: 100,
-    border: "none",
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: 600,
-    letterSpacing: -0.12,
-    cursor: "pointer",
-    boxShadow: "0 2px 8px rgba(52,120,246,0.35)",
-  },
-  alertChipArrow: {
-    width: 0,
-    height: 0,
-    borderLeft: "6px solid transparent",
-    borderRight: "6px solid transparent",
-    borderBottom: "6px solid #3478F6",
-    marginBottom: -1,
-  },
-  chargeBtn: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    height: 50,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    border: "none",
-    color: colors.white,
-    fontSize: 17,
-    fontWeight: 700,
-    letterSpacing: -0.17,
-  },
-  chargePIcon: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    backgroundColor: "rgba(255,255,255,0.3)",
-    fontSize: 12,
-    fontWeight: 800,
-    color: colors.white,
-    marginRight: 6,
-  },
-};
+// ─── 체크 아이콘 ──────────────────────────────────────────────
+function CheckMark({ color }: { color: string }) {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+      <path d="M1.5 5.5L4 7.5L8.5 2.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// ─── Payment Complete Popup (센터 모달) ───────────────────────
+function PaymentCompletePopup({ onClose, type }: { onClose: () => void; type: PaymentTab }) {
+  const { t } = useTranslation();
+  const isFranchise = type === "franchise";
+  const storeName = isFranchise ? t("qrPay.storeFranchise") : t("qrPay.storeCafeteria");
+  const amount = isFranchise ? "7,500" : "4,700";
+  const paymentNo = isFranchise ? "7775024071900055" : "4357394287500012";
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(paymentNo);
+  };
+
+  return (
+    <div style={popupStyles.overlay} onClick={onClose}>
+      <div style={popupStyles.popup} onClick={(e) => e.stopPropagation()}>
+        {/* 빨간 헤더 */}
+        <div style={popupStyles.popupHeader}>
+          <span style={popupStyles.popupHeaderText}>{t("qrPay.paymentComplete")}</span>
+        </div>
+
+        {/* 본문 */}
+        <div style={popupStyles.popupBody}>
+          <span style={popupStyles.popupDate}>{t("qrPay.soloPayment")} | 2024.07.19 12:00</span>
+
+          {/* 금액 카드 */}
+          <div style={popupStyles.popupAmountCard}>
+            <span style={popupStyles.popupAmount}>{formatAmountStr(amount)}</span>
+          </div>
+
+          {/* 가맹점 카드 */}
+          <div style={popupStyles.popupStoreCard}>
+            <span style={popupStyles.popupStoreName}>{storeName}</span>
+            <div style={popupStyles.popupPaymentNo}>
+              <span style={popupStyles.popupPaymentNoText}>{t("qrPay.paymentNumber")} {paymentNo}</span>
+              <button style={popupStyles.popupCopyBtn} onClick={handleCopy}>{t("qrPay.copy")}</button>
+            </div>
+          </div>
+
+          {/* 점선 구분 */}
+          <div style={popupStyles.popupDashed} />
+
+          {/* 닫기 버튼 */}
+          <button style={popupStyles.popupCloseBtn} onClick={onClose}>
+            {t("qrPay.close")}
+          </button>
+        </div>
+      </div>
+
+      {/* 파란 말풍선 (프랜차이즈만) */}
+      {isFranchise && (
+        <div style={popupStyles.bubbleWrap}>
+          <div style={popupStyles.bubbleArrow} />
+          <div style={popupStyles.bubble}>
+            <span style={popupStyles.bubbleLine}>{t("qrPay.bubbleLine1")}</span>
+            <span style={popupStyles.bubbleLine}>{t("qrPay.bubbleLine2")}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── QR Code Generator ───────────────────────────────────────
 function generateQrMatrix(seed: number): boolean[][] {
   const size = 25;
-  const matrix: boolean[][] = Array.from({ length: size }, () =>
-    Array(size).fill(false)
-  );
+  const matrix: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
 
   // Finder patterns (3 corners)
   const drawFinder = (r: number, c: number) => {
@@ -543,11 +392,9 @@ function generateQrMatrix(seed: number): boolean[][] {
   const clearSep = (r: number, c: number, h: boolean) => {
     for (let i = 0; i < 8; i++) {
       if (h) {
-        if (r >= 0 && r < size && c + i >= 0 && c + i < size)
-          matrix[r][c + i] = false;
+        if (r >= 0 && r < size && c + i >= 0 && c + i < size) matrix[r][c + i] = false;
       } else {
-        if (r + i >= 0 && r + i < size && c >= 0 && c < size)
-          matrix[r + i][c] = false;
+        if (r + i >= 0 && r + i < size && c >= 0 && c < size) matrix[r + i][c] = false;
       }
     }
   };
@@ -624,88 +471,7 @@ function QrCodeSvg({ size = 160, seed = 42 }: { size?: number; seed?: number }) 
   );
 }
 
-// ─── Payment Complete Popup ───────────────────────────────────────
-function PaymentCompletePopup({ onClose, onAdditionalPay }: { onClose: () => void; onAdditionalPay: () => void }) {
-  const { t } = useTranslation();
-  const [slideIn, setSlideIn] = useState(false);
-
-  useEffect(() => {
-    requestAnimationFrame(() => setSlideIn(true));
-  }, []);
-
-  const handleClose = () => {
-    setSlideIn(false);
-    setTimeout(onClose, 300);
-  };
-
-  return (
-    <div
-      style={{
-        ...popupStyles.overlay,
-        opacity: slideIn ? 1 : 0,
-      }}
-      onClick={handleClose}
-    >
-      <div
-        style={{
-          ...popupStyles.sheet,
-          transform: slideIn ? "translateY(0)" : "translateY(100%)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* ── Header ── */}
-        <div style={popupStyles.sheetHeader}>
-          <span style={popupStyles.sheetTitle}>{t("qrPay.paymentComplete")}</span>
-          <button onClick={handleClose} style={popupStyles.closeBtn}>
-            <X size={18} strokeWidth={2.5} color="#888" />
-          </button>
-        </div>
-
-        {/* ── Amount Row ── */}
-        <div style={popupStyles.amountRow}>
-          <span style={popupStyles.amountValue}>4,700</span>
-          <button onClick={() => {
-            setSlideIn(false);
-            setTimeout(onAdditionalPay, 300);
-          }} style={popupStyles.additionalPayBtn}>
-            <div style={{ width: 16, height: 13, flexShrink: 0 }}>
-              <QrIcon />
-            </div>
-            {t("qrPay.additionalPay")}
-          </button>
-        </div>
-
-        {/* ── Detail Rows ── */}
-        <div style={popupStyles.detailSection}>
-          <div style={popupStyles.detailRow}>
-            <span style={popupStyles.detailLabel}>{t("qrPay.paymentDate")}</span>
-            <span style={popupStyles.detailValue}>2023.09.06 11:13</span>
-          </div>
-          <div style={popupStyles.detailRow}>
-            <span style={popupStyles.detailLabel}>{t("qrPay.paymentNumber")}</span>
-            <span style={popupStyles.detailValue}>43573942875</span>
-          </div>
-          <div style={popupStyles.detailRow}>
-            <span style={popupStyles.detailLabel}>{t("qrPay.paymentPlace")}</span>
-            <span style={popupStyles.detailValue}>{t("qrPay.cafeteriaName")}</span>
-          </div>
-        </div>
-
-        {/* ── Event Banner ── */}
-        <div style={popupStyles.bannerWrap}>
-          <img src={img} alt="event banner" style={popupStyles.bannerImg} />
-          <div style={popupStyles.bannerOverlay}>
-            <p style={popupStyles.bannerTag}>OPEN EVENT</p>
-            <p style={popupStyles.bannerSub}>{t("qrPay.surveyBannerSub")}</p>
-            <p style={popupStyles.bannerTitle}>{t("qrPay.surveyBannerTitle")}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Payment Complete Popup Styles ───────────────────────────────────────
+// ─── Popup Styles (결제내역 상세 팝업과 동일) ────────────────
 const popupStyles: Record<string, CSSProperties> = {
   overlay: {
     position: "absolute",
@@ -713,143 +479,642 @@ const popupStyles: Record<string, CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(25,26,28,0.4)",
-    zIndex: 200,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 300,
     display: "flex",
     flexDirection: "column",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    paddingTop: 24,
-    paddingLeft: spacing.xl + 2,
-    paddingRight: spacing.xl + 2,
-    paddingBottom: 28,
-    fontFamily,
-  },
-  sheetHeader: {
-    display: "flex",
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 28,
+    justifyContent: "center",
+    padding: 24,
+    gap: 12,
   },
-  sheetTitle: {
+  popup: {
+    width: "100%",
+    maxWidth: 340,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  popupHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 52,
+    backgroundColor: colors.primary,
+  },
+  popupHeaderText: {
     fontSize: 18,
     fontWeight: 700,
-    color: colors.black,
-    letterSpacing: -0.18,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.gray6,
-    borderRadius: 999,
-    border: "none",
-    padding: 0,
-  },
-  amountRow: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 28,
-  },
-  amountValue: {
-    fontSize: 30,
-    fontWeight: 800,
-    color: colors.black,
-    letterSpacing: -0.3,
-  },
-  additionalPayBtn: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    paddingLeft: 16,
-    paddingRight: 16,
-    height: 36,
-    backgroundColor: colors.primary,
-    borderRadius: 100,
-    border: "none",
     color: colors.white,
-    fontSize: 13,
-    fontWeight: 700,
-    letterSpacing: -0.13,
+    letterSpacing: -0.2,
   },
-  detailSection: {
+  popupBody: {
+    padding: "24px 20px 20px",
     display: "flex",
     flexDirection: "column",
-    gap: 22,
-    marginBottom: 32,
-  },
-  detailRow: {
-    display: "flex",
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 16,
   },
-  detailLabel: {
+  popupDate: {
     fontSize: 14,
     fontWeight: 500,
     color: colors.black,
-    letterSpacing: -0.14,
+    letterSpacing: -0.2,
   },
-  detailValue: {
-    fontSize: 14,
+  popupAmountCard: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "28px 0",
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 12,
+  },
+  popupAmount: {
+    fontSize: 36,
+    fontWeight: 800,
+    color: colors.black,
+    letterSpacing: -0.5,
+  },
+  popupStoreCard: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 8,
+    padding: "20px 0",
+    backgroundColor: colors.gray7,
+    borderRadius: 12,
+  },
+  popupStoreName: {
+    fontSize: 17,
     fontWeight: 700,
     color: colors.black,
-    letterSpacing: -0.14,
-    textAlign: "right",
+    letterSpacing: -0.2,
   },
-  bannerWrap: {
+  popupPaymentNo: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  popupPaymentNoText: {
+    fontSize: 13,
+    fontWeight: 400,
+    color: colors.gray1,
+    letterSpacing: -0.2,
+  },
+  popupCopyBtn: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: colors.gray1,
+    backgroundColor: "transparent",
+    border: `1px solid ${colors.gray3}`,
+    borderRadius: 999,
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 10,
+    paddingRight: 10,
+    cursor: "pointer",
+    fontFamily,
+  },
+  popupDashed: {
+    width: "100%",
+    borderTop: `2px dashed ${colors.gray5}`,
+  },
+  popupCloseBtn: {
+    width: "100%",
+    height: 50,
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 12,
+    fontSize: 16,
+    fontWeight: 600,
+    color: colors.black,
+    cursor: "pointer",
+    fontFamily,
+  },
+  bubbleWrap: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  bubbleArrow: {
+    width: 0,
+    height: 0,
+    borderLeft: "6px solid transparent",
+    borderRight: "6px solid transparent",
+    borderBottom: "6px solid #3478F6",
+    marginBottom: -1,
+  },
+  bubble: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 18,
+    paddingRight: 18,
+    backgroundColor: "#3478F6",
+    borderRadius: 14,
+    boxShadow: "0 2px 8px rgba(52,120,246,0.35)",
+  },
+  bubbleLine: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: "#fff",
+    letterSpacing: -0.13,
+  },
+};
+
+// ─── Styles ──────────────────────────────────────────────────
+const s: Record<string, CSSProperties> = {
+  overlay: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 100,
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: colors.bg,
+    fontFamily,
+  },
+
+  /* Header */
+  header: {
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: colors.white,
+    paddingLeft: 12,
+    paddingRight: 16,
+    height: 54,
+    justifyContent: "center",
+    zIndex: 10,
+    flexShrink: 0,
+  },
+  headerInner: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerLeftGroup: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  backBtn: {
+    width: 30,
+    height: 30,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
+  },
+  headerTitle: {
+    ...headerTitleBase,
+    color: colors.black,
+  },
+
+  /* Tab Bar */
+  tabBarWrap: {
+    backgroundColor: colors.white,
+    borderBottom: `1px solid ${colors.gray5}`,
+    boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+    flexShrink: 0,
+    zIndex: 5,
+  },
+  tabBar: {
+    display: "flex",
+    flexDirection: "row",
+    paddingLeft: spacing.xl,
+  },
+  tabItem: {
+    position: "relative",
+    backgroundColor: "transparent",
+    border: "none",
+    padding: 0,
+    paddingTop: 15,
+    paddingBottom: 15,
+    marginRight: 24,
+    fontSize: 16,
+    letterSpacing: -0.3,
+    cursor: "pointer",
+    fontFamily,
+    whiteSpace: "nowrap" as const,
+    flexShrink: 0,
+  },
+  tabIndicator: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: colors.black,
+    borderRadius: 999,
+  },
+
+  /* Scroll */
+  scroll: {
+    flex: 1,
+    overflowY: "auto",
+    padding: spacing.lg,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    paddingBottom: 120,
+  },
+
+  /* QR Card */
+  qrCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingTop: 32,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
+    gap: 24,
+  },
+  barcodeQrRow: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: 26,
+  },
+  barcodeAreaInline: {
+    flex: 1,
+  },
+  qrAreaInline: {
+    width: 80,
+    height: 80,
+    flexShrink: 0,
+  },
+  qrArea: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  brandSection: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  },
+  brandLabel: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: colors.gray1,
+    letterSpacing: -0.13,
+  },
+  brandSwipeWrap: {
     position: "relative",
     overflow: "hidden",
-    borderRadius: 12,
-    height: 101,
+    marginLeft: -20,
+    marginRight: -20,
   },
-  bannerImg: {
+  brandFadeLeft: {
     position: "absolute",
     top: 0,
     left: 0,
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
+    bottom: 0,
+    width: 40,
+    background: "linear-gradient(to left, rgba(255,255,255,0), rgba(255,255,255,1))",
+    pointerEvents: "none",
+    zIndex: 1,
   },
-  bannerOverlay: {
+  brandFadeRight: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 40,
+    background: "linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,1))",
+    pointerEvents: "none",
+    zIndex: 1,
+  },
+  brandSwipeRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 12,
+    overflowX: "auto",
+    paddingBottom: 4,
+    paddingLeft: 20,
+    paddingRight: 20,
+    WebkitOverflowScrolling: "touch",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+  } as CSSProperties,
+  brandItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 7,
+    flexShrink: 0,
+  },
+  brandRoundLogo: {
+    width: 64,
+    height: 64,
+    borderRadius: 999,
+    objectFit: "cover" as const,
+  },
+  brandName: {
+    fontSize: 11,
+    fontWeight: 500,
+    color: colors.gray1,
+    letterSpacing: -0.11,
+    whiteSpace: "nowrap" as const,
+  },
+  timerSection: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: 12,
+  },
+  dividerFull: {
+    width: "calc(100% + 40px)",
+    height: 1,
+    backgroundColor: colors.gray6,
+    marginLeft: -20,
+    alignSelf: "stretch",
+  },
+  timerRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  timerLabel: {
+    fontSize: 15,
+    fontWeight: 500,
+    color: colors.gray1,
+    letterSpacing: -0.15,
+  },
+  timerValue: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: colors.primary,
+    letterSpacing: -0.15,
+  },
+
+  /* Point Cards */
+  pointCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    padding: "16px 20px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  pointLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  pointLabel: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: colors.gray1,
+    letterSpacing: -0.13,
+  },
+  pointRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+  },
+  pointValue: {
+    fontSize: 17,
+    fontWeight: 700,
+    letterSpacing: -0.16,
+  },
+  disabledBadge: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: colors.primary,
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: colors.primary,
+    borderRadius: 999,
+    paddingTop: 2,
+    paddingBottom: 3,
+    paddingLeft: 7,
+    paddingRight: 7,
+    lineHeight: 1,
+  },
+
+  /* Alert Chip (말풍선) */
+  alertChipWrap: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginTop: -32,
+    marginBottom: 0,
+    position: "relative",
+    zIndex: 5,
+  },
+  alertMiniBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    paddingLeft: 14,
+    paddingRight: 14,
+    height: 32,
+    backgroundColor: "#3478F6",
+    borderRadius: 100,
+    border: "none",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: 600,
+    letterSpacing: -0.12,
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(52,120,246,0.35)",
+    fontFamily,
+  },
+  alertChipArrow: {
+    width: 0,
+    height: 0,
+    borderLeft: "6px solid transparent",
+    borderRight: "6px solid transparent",
+    borderBottom: "6px solid #3478F6",
+    marginBottom: -1,
+  },
+
+  /* Shared Fullscreen Overlay */
+  fullOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: "#191A1C",
+    zIndex: 400,
     display: "flex",
     flexDirection: "column",
+    alignItems: "center",
     justifyContent: "center",
-    paddingLeft: spacing.xl + 10,
-    paddingRight: 120,
+    gap: 24,
+    fontFamily,
   },
-  bannerTag: {
-    fontSize: 11,
-    fontWeight: 400,
-    color: colors.white,
-    marginBottom: spacing.xs,
+  fullCloseTopRight: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: radius.full,
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
   },
-  bannerSub: {
-    fontSize: 13,
+  fullTimerRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  fullTimerLabel: {
+    fontSize: 15,
+    fontWeight: 500,
+    color: "rgba(255,255,255,0.7)",
+    letterSpacing: -0.15,
+  },
+  fullTimerValue: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: colors.primary,
+    letterSpacing: -0.15,
+  },
+
+  /* Barcode Fullscreen */
+  barcodeFullRow: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 24,
+  },
+  barcodeFullTimer: {
+    fontSize: 14,
     fontWeight: 600,
     color: colors.white,
-    marginBottom: 2,
-    letterSpacing: -0.4,
+    fontFamily,
+    writingMode: "vertical-rl" as const,
+    textOrientation: "sideways" as const,
+    whiteSpace: "nowrap" as const,
+    userSelect: "none" as const,
+    letterSpacing: -0.14,
   },
-  bannerTitle: {
-    fontSize: 20,
+  barcodeFullNumber: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: colors.white,
+    letterSpacing: 1.5,
+    fontFamily,
+    writingMode: "vertical-lr" as const,
+    textOrientation: "mixed" as const,
+    userSelect: "none" as const,
+  },
+  barcodeFullCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    padding: spacing.xl,
+    width: 160,
+    height: 520,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    boxShadow: "0 0 10px rgba(234,234,234,0.7)",
+  },
+  barcodeFullImg: {
+    width: 500,
+    height: "auto",
+    transform: "rotate(90deg) scale(3.5)",
+    flexShrink: 0,
+  },
+
+  /* QR Fullscreen */
+  qrFullCenter: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  qrFullCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    padding: spacing.xxl,
+    width: 280,
+    height: 280,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 0 10px rgba(234,234,234,0.7)",
+  },
+
+  /* Bottom Bar */
+  bottomBar: {
+    position: "relative",
+    zIndex: 10,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    boxShadow: "0 -1px 8px rgba(163,163,163,0.6)",
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+    flexShrink: 0,
+  },
+  chargeBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    height: 50,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    border: "none",
+    color: colors.white,
+    fontSize: 17,
+    fontWeight: 700,
+    letterSpacing: -0.17,
+    cursor: "pointer",
+    fontFamily,
+    gap: 8,
+  },
+  chargePIcon: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    fontSize: 12,
     fontWeight: 800,
     color: colors.white,
-    letterSpacing: -0.5,
+    letterSpacing: -0.17,
   },
 };
