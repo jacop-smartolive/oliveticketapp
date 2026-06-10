@@ -4,6 +4,7 @@
  * - 기업포인트 / 올리브포인트 카드
  * - 포인트 관리 메뉴: 환불하기 / 선물하기 / 선물 쿠폰 등록하기
  */
+import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { ChevronLeft, ChevronRight, RefreshCcw, Gift, Ticket } from "lucide-react";
 import svgPaths from "../../imports/svg-apf66xr4az";
@@ -16,6 +17,7 @@ interface PointHubPageProps {
   onCorporatePointClick: () => void;
   onOlivePointClick: () => void;
   onRefundClick?: () => void;
+  onGiftClick?: () => void;
 }
 
 /* 기업포인트용 커스텀 빌딩 아이콘 (네이비) */
@@ -39,8 +41,55 @@ function CorporateBuildingIcon() {
   );
 }
 
-export default function PointHubPage({ onBack, onCorporatePointClick, onOlivePointClick, onRefundClick }: PointHubPageProps) {
+export default function PointHubPage({ onBack, onCorporatePointClick, onOlivePointClick, onRefundClick, onGiftClick }: PointHubPageProps) {
   const { t } = useTranslation();
+
+  // ── 선물 쿠폰 등록 ──
+  const [showCoupon, setShowCoupon] = useState(false);
+  const [couponFadeIn, setCouponFadeIn] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [showComplete, setShowComplete] = useState(false);
+  const [completeFadeIn, setCompleteFadeIn] = useState(false);
+  const chargedAmount = "5,000";
+
+  useEffect(() => {
+    if (showCoupon) {
+      const timer = setTimeout(() => setCouponFadeIn(true), 10);
+      return () => clearTimeout(timer);
+    }
+    setCouponFadeIn(false);
+  }, [showCoupon]);
+
+  useEffect(() => {
+    if (showComplete) {
+      const timer = setTimeout(() => setCompleteFadeIn(true), 10);
+      return () => clearTimeout(timer);
+    }
+    setCompleteFadeIn(false);
+  }, [showComplete]);
+
+  const closeCoupon = () => {
+    setCouponFadeIn(false);
+    setTimeout(() => {
+      setShowCoupon(false);
+      setCouponCode("");
+    }, 200);
+  };
+
+  const submitCoupon = () => {
+    if (!couponCode.trim()) return;
+    setCouponFadeIn(false);
+    setTimeout(() => {
+      setShowCoupon(false);
+      setCouponCode("");
+      setShowComplete(true);
+    }, 200);
+  };
+
+  const closeComplete = () => {
+    setCompleteFadeIn(false);
+    setTimeout(() => setShowComplete(false), 200);
+  };
 
   return (
     <div style={s.overlay}>
@@ -109,7 +158,7 @@ export default function PointHubPage({ onBack, onCorporatePointClick, onOlivePoi
             <ChevronRight size={17} strokeWidth={2} color={colors.gray2} />
           </div>
 
-          <div style={{ ...s.menuItem, borderTop: `1px solid ${colors.border}` }}>
+          <div style={{ ...s.menuItem, borderTop: `1px solid ${colors.border}` }} onClick={onGiftClick}>
             <div style={s.menuLeft}>
               <div style={s.menuIcon}><Gift size={19} strokeWidth={2.4} /></div>
               <span style={s.menuText}>{t("pointHub.gift")}</span>
@@ -117,7 +166,7 @@ export default function PointHubPage({ onBack, onCorporatePointClick, onOlivePoi
             <ChevronRight size={17} strokeWidth={2} color={colors.gray2} />
           </div>
 
-          <div style={{ ...s.menuItem, borderTop: `1px solid ${colors.border}` }}>
+          <div style={{ ...s.menuItem, borderTop: `1px solid ${colors.border}` }} onClick={() => setShowCoupon(true)}>
             <div style={s.menuLeft}>
               <div style={s.menuIcon}><Ticket size={17} strokeWidth={2.4} /></div>
               <span style={s.menuText}>{t("pointHub.registerGiftCoupon")}</span>
@@ -126,6 +175,67 @@ export default function PointHubPage({ onBack, onCorporatePointClick, onOlivePoi
           </div>
         </div>
       </div>
+
+      {/* ── 선물 쿠폰 등록 팝업 ── */}
+      {showCoupon && (
+        <div
+          style={{ ...s.dialogOverlay, opacity: couponFadeIn ? 1 : 0 }}
+          onClick={closeCoupon}
+        >
+          <div
+            style={{
+              ...s.dialogCard,
+              transform: couponFadeIn ? "scale(1)" : "scale(0.92)",
+              opacity: couponFadeIn ? 1 : 0,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={s.dialogTitle}>{t("gift.couponTitle")}</p>
+            <input
+              autoFocus
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              placeholder={t("gift.couponPlaceholder")}
+              style={s.couponInput}
+            />
+            <div style={s.dialogBtnRow}>
+              <button style={s.dialogCancelBtn} onClick={closeCoupon}>{t("common.cancel")}</button>
+              <button
+                style={{
+                  ...s.dialogPrimaryBtn,
+                  backgroundColor: couponCode.trim() ? colors.primary : colors.gray3,
+                  cursor: couponCode.trim() ? "pointer" : "default",
+                }}
+                disabled={!couponCode.trim()}
+                onClick={submitCoupon}
+              >
+                {t("gift.couponRegister")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 선물 포인트 충전완료 팝업 ── */}
+      {showComplete && (
+        <div
+          style={{ ...s.dialogOverlay, opacity: completeFadeIn ? 1 : 0 }}
+          onClick={closeComplete}
+        >
+          <div
+            style={{
+              ...s.dialogCard,
+              transform: completeFadeIn ? "scale(1)" : "scale(0.92)",
+              opacity: completeFadeIn ? 1 : 0,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={s.dialogTitle}>{t("gift.couponChargeComplete")}</p>
+            <p style={s.chargedAmount}>{formatAmountStr(chargedAmount)}{t("gift.pointUnit")}</p>
+            <button style={s.dialogConfirmBtn} onClick={closeComplete}>{t("common.confirm")}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -295,5 +405,109 @@ const s: Record<string, CSSProperties> = {
     fontWeight: 600,
     color: colors.black,
     letterSpacing: -0.2,
+  },
+
+  /* ── 선물 쿠폰 다이얼로그 (공통 패턴) ── */
+  dialogOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(25,26,28,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 300,
+    transition: "opacity 0.2s ease",
+    fontFamily,
+  },
+  dialogCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: "28px 24px 24px",
+    width: "calc(100% - 56px)",
+    maxWidth: 320,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    transition: "transform 0.2s ease, opacity 0.2s ease",
+  },
+  dialogTitle: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.3,
+    margin: 0,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  couponInput: {
+    width: "100%",
+    height: 48,
+    border: `1.5px solid ${colors.gray7}`,
+    borderRadius: 12,
+    backgroundColor: colors.inputBg,
+    paddingLeft: 16,
+    paddingRight: 16,
+    fontSize: 15,
+    fontWeight: 500,
+    color: colors.black,
+    letterSpacing: -0.2,
+    outline: "none",
+    fontFamily,
+    boxSizing: "border-box",
+    marginBottom: 16,
+  },
+  dialogBtnRow: {
+    display: "flex",
+    width: "100%",
+    gap: 10,
+  },
+  dialogCancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    border: "none",
+    backgroundColor: colors.gray6,
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.gray1,
+    letterSpacing: -0.16,
+    cursor: "pointer",
+    fontFamily,
+  },
+  dialogPrimaryBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    border: "none",
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.white,
+    letterSpacing: -0.16,
+    fontFamily,
+  },
+  chargedAmount: {
+    fontSize: 28,
+    fontWeight: 800,
+    color: colors.primary,
+    letterSpacing: -0.5,
+    margin: 0,
+    marginBottom: 24,
+    textAlign: "center",
+  },
+  dialogConfirmBtn: {
+    width: "100%",
+    height: 48,
+    borderRadius: 12,
+    border: "none",
+    backgroundColor: colors.primary,
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.white,
+    letterSpacing: -0.16,
+    cursor: "pointer",
+    fontFamily,
   },
 };

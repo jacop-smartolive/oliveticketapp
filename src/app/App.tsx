@@ -61,6 +61,7 @@ import OldVersionHomePage from "./components/OldVersionHomePage";
 import OldVersionQrPaymentPage from "./components/OldVersionQrPaymentPage";
 import OldVersionPaymentHistoryPage from "./components/OldVersionPaymentHistoryPage";
 import OldVersionMyOlivePage from "./components/OldVersionMyOlivePage";
+import GiftPage from "./components/GiftPage";
 
 // ─── Keyframes ───────────────────────────────────────────────
 const animationKeyframes = `
@@ -832,6 +833,7 @@ function AppContent() {
   const [showPointHub, setShowPointHub] = useState(false);
   const [showOlivePoint, setShowOlivePoint] = useState(false);
   const [showOlivePointRefund, setShowOlivePointRefund] = useState(false);
+  const [showGift, setShowGift] = useState(false);
   const [showRefundCompleteAlert, setShowRefundCompleteAlert] = useState(false);
   const [refundAlertFadeIn, setRefundAlertFadeIn] = useState(false);
 
@@ -1657,7 +1659,13 @@ function AppContent() {
           onCorporatePointClick={() => setShowCorporatePoint(true)}
           onOlivePointClick={() => setShowOlivePoint(true)}
           onRefundClick={() => setShowOlivePointRefund(true)}
+          onGiftClick={() => setShowGift(true)}
         />
+      )}
+
+      {/* ── Gift Page ── */}
+      {showGift && (
+        <GiftPage onBack={() => setShowGift(false)} />
       )}
 
       {/* ── Olive Point Page ── */}

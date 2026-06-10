@@ -12,6 +12,7 @@ import { colors, fontFamily, spacing, headerTitleBase, radius, pillBadgeBase } f
 import { formatAmountStr } from "../shared/formatters";
 import OlivePointReceiptPage from "./OlivePointReceiptPage";
 import OlivePointRefundPage from "./OlivePointRefundPage";
+import OlivePointChargePage from "./OlivePointChargePage";
 
 interface ChargeRecord {
   id: number;
@@ -77,6 +78,7 @@ export default function OlivePointPage({ onBack, onRefundComplete }: OlivePointP
   const [showReceipt, setShowReceipt] = useState(false);
   const [refundableReceipt, setRefundableReceipt] = useState(false);
   const [showRefund, setShowRefund] = useState(false);
+  const [showCharge, setShowCharge] = useState(false);
 
   const totalPoints = "37,000";
 
@@ -223,7 +225,7 @@ export default function OlivePointPage({ onBack, onRefundComplete }: OlivePointP
       {/* ── Bottom Buttons ── */}
       <div style={s.bottomBar}>
         <button style={s.btnRefund} onClick={() => setShowRefund(true)}>{t("olivePoint.refund")}</button>
-        <button style={s.btnCharge}>{t("olivePoint.charge")}</button>
+        <button style={s.btnCharge} onClick={() => setShowCharge(true)}>{t("olivePoint.charge")}</button>
       </div>
 
       {/* ── Receipt Page ── */}
@@ -241,6 +243,11 @@ export default function OlivePointPage({ onBack, onRefundComplete }: OlivePointP
           onBack={() => setShowRefund(false)}
           onRefundComplete={onRefundComplete}
         />
+      )}
+
+      {/* ── Charge Page ── */}
+      {showCharge && (
+        <OlivePointChargePage onBack={() => setShowCharge(false)} />
       )}
     </div>
   );
