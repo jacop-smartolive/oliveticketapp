@@ -149,8 +149,11 @@ export default function OlivePointChargePage({ onBack }: OlivePointChargePagePro
             <>
               {/* 카드 캐러셀 (스와이프) */}
               <div style={s.cardCarousel} onScroll={handleCardScroll}>
-                {REGISTERED_CARDS.map((c) => (
-                  <div key={c.id} style={s.cardSlide}>
+                {REGISTERED_CARDS.map((c, i) => (
+                  <div
+                    key={c.id}
+                    style={{ ...s.cardSlide, transform: `scale(${activeCard === i ? 1 : 0.86})` }}
+                  >
                     <div style={s.creditCard}>
                       <div style={s.cardChip} />
                       <div style={s.creditCardBottom}>
@@ -161,7 +164,9 @@ export default function OlivePointChargePage({ onBack }: OlivePointChargePagePro
                   </div>
                 ))}
                 {/* 카드 추가 */}
-                <div style={s.cardSlide}>
+                <div
+                  style={{ ...s.cardSlide, transform: `scale(${activeCard === REGISTERED_CARDS.length ? 1 : 0.86})` }}
+                >
                   <button style={s.addCard} onClick={() => {}}>
                     <div style={s.plusCircle}>
                       <Plus size={20} strokeWidth={2.4} color={colors.primary} />
@@ -524,22 +529,27 @@ const s: Record<string, CSSProperties> = {
   cardCarousel: {
     display: "flex",
     flexDirection: "row",
-    gap: 10,
+    gap: 8,
     overflowX: "auto",
     scrollSnapType: "x mandatory",
     marginTop: 10,
-    paddingBottom: 4,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: "12%",
+    paddingRight: "12%",
     scrollbarWidth: "none",
     WebkitOverflowScrolling: "touch",
   } as CSSProperties,
   cardSlide: {
     flexShrink: 0,
-    width: "84%",
-    scrollSnapAlign: "start",
+    width: "76%",
+    scrollSnapAlign: "center",
+    transformOrigin: "center center",
+    transition: "transform 0.25s ease",
   },
   creditCard: {
     width: "100%",
-    height: 178,
+    height: 158,
     borderRadius: 14,
     background: "linear-gradient(135deg, #5CC6F0 0%, #2BA8E8 55%, #1C7FCF 100%)",
     position: "relative",
@@ -577,7 +587,7 @@ const s: Record<string, CSSProperties> = {
   },
   addCard: {
     width: "100%",
-    height: 178,
+    height: 158,
     borderRadius: 14,
     border: `1.5px dashed ${colors.gray3}`,
     backgroundColor: colors.white,
