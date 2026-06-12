@@ -8,6 +8,7 @@ import type { CSSProperties } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, headerTitleBase, radius } from "../shared/tokens";
+import { formatAmountStr } from "../shared/formatters";
 import { showSuccessToast } from "../shared/toast";
 
 interface OlivePointReceiptPageProps {
@@ -17,18 +18,13 @@ interface OlivePointReceiptPageProps {
   onRefundComplete?: () => void;
 }
 
-/* Mock 영수증 데이터 */
+/* Mock 영수증 데이터 (텍스트 필드는 t("mock.*")로 렌더, 숫자/중립값만 보관) */
 const receipt = {
-  businessName: "㈜스마트올리브",
   transactionAt: "2024.02.27 12:03",
   approvalNo: "00757000",
-  installment: "일시불",
-  product: "직접 입력",
-  amount: "16,500원",
-  refundableAmount: "0원",
+  amount: "16,500",
+  refundableAmount: "0",
   businessNo: "646-88-00430",
-  representative: "박현숙",
-  address: "(08590) 서울특별시 금천구 가산디지털1로 88, 19층 04호(가산동, IT프리미어타워)",
   contact: "070-4006-5288",
 };
 
@@ -80,25 +76,25 @@ export default function OlivePointReceiptPage({ onBack, onRefund, refundable = f
         <div style={s.card}>
           <div style={s.sectionTitle}>{t("olivePointReceipt.eReceipt")}</div>
 
-          <Row label={t("olivePointReceipt.businessName")} value={receipt.businessName} />
+          <Row label={t("olivePointReceipt.businessName")} value={t("mock.bizName")} />
           <Row label={t("olivePointReceipt.transactionAt")} value={receipt.transactionAt} />
           <Row label={t("olivePointReceipt.approvalNo")} value={receipt.approvalNo} />
 
           <Divider />
 
-          <Row label={t("olivePointReceipt.installment")} value={receipt.installment} />
-          <Row label={t("olivePointReceipt.product")} value={receipt.product} />
+          <Row label={t("olivePointReceipt.installment")} value={t("mock.installmentLump")} />
+          <Row label={t("olivePointReceipt.product")} value={t("mock.productDirect")} />
 
           <Divider />
 
-          <Row label={t("olivePointReceipt.amount")} value={receipt.amount} />
-          <Row label={t("olivePointReceipt.refundableAmount")} value={receipt.refundableAmount} />
+          <Row label={t("olivePointReceipt.amount")} value={`${formatAmountStr(receipt.amount)} ${t("common.won")}`} />
+          <Row label={t("olivePointReceipt.refundableAmount")} value={`${formatAmountStr(receipt.refundableAmount)} ${t("common.won")}`} />
 
           <Divider />
 
           <Row label={t("olivePointReceipt.businessNo")} value={receipt.businessNo} />
-          <Row label={t("olivePointReceipt.representative")} value={receipt.representative} />
-          <Row label={t("olivePointReceipt.address")} value={receipt.address} multiline />
+          <Row label={t("olivePointReceipt.representative")} value={t("mock.representative")} />
+          <Row label={t("olivePointReceipt.address")} value={t("mock.bizAddress")} multiline />
           <Row label={t("olivePointReceipt.contact")} value={receipt.contact} />
         </div>
       </div>

@@ -80,10 +80,10 @@ export default function GiftAmountPage({ recipient, onBack, onComplete }: GiftAm
         <div style={s.card}>
           <span style={s.cardLabel}>{t("gift.recipientLabel")}</span>
           <div style={s.recipientRow}>
-            <div style={s.avatar}>{recipient.name.charAt(0)}</div>
+            <div style={s.avatar}>{t(recipient.nameKey).charAt(0)}</div>
             <div style={s.recipientInfo}>
-              <span style={s.recipientName}>{recipient.name}</span>
-              <span style={s.recipientDept}>{recipient.dept}</span>
+              <span style={s.recipientName}>{t(recipient.nameKey)}</span>
+              <span style={s.recipientDept}>{t("mock.company")} | {t(recipient.deptKey)}</span>
             </div>
           </div>
         </div>
@@ -235,7 +235,7 @@ export default function GiftAmountPage({ recipient, onBack, onComplete }: GiftAm
               textAlign: "center",
               whiteSpace: "pre-line",
             }}>
-              {t("gift.confirmMessage", { name: recipient.name, amount: amount.toLocaleString() })}
+              {t("gift.confirmMessage", { name: t(recipient.nameKey), amount: amount.toLocaleString() })}
             </p>
             <div style={{ display: "flex", width: "100%", gap: 10 }}>
               <button

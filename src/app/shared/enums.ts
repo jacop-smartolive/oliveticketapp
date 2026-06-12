@@ -121,10 +121,12 @@ export const mealTimeKey: Record<MealTime, string> = {
 export const HomeTab = {
   CAFETERIA: "CAFETERIA",
   SIMPLE_MEAL: "SIMPLE_MEAL",
+  RESTAURANT_CAFE: "RESTAURANT_CAFE",
 } as const;
 export type HomeTab = (typeof HomeTab)[keyof typeof HomeTab];
 
 export const homeTabKey: Record<HomeTab, string> = {
   CAFETERIA: "enum.homeTab.CAFETERIA",
   SIMPLE_MEAL: "enum.homeTab.SIMPLE_MEAL",
+  RESTAURANT_CAFE: "enum.homeTab.RESTAURANT_CAFE",
 };

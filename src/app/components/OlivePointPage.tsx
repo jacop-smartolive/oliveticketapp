@@ -6,10 +6,10 @@
  */
 import { useState } from "react";
 import type { CSSProperties } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, headerTitleBase, radius, pillBadgeBase } from "../shared/tokens";
-import { formatAmountStr } from "../shared/formatters";
+import { formatAmountStr, formatDateTimeWithDay } from "../shared/formatters";
 import OlivePointReceiptPage from "./OlivePointReceiptPage";
 import OlivePointRefundPage from "./OlivePointRefundPage";
 import OlivePointChargePage from "./OlivePointChargePage";
@@ -31,16 +31,16 @@ type ChargeRefundType = "CHARGE" | "USE" | "REFUND";
 
 interface ChargeRefundRecord {
   id: number;
-  date: string;   // "3월 5일 (화) 17:00" 형태
-  method: string; // "신용카드 | 나이스 PG"
+  date: Date;
+  methodKey: string; // mock.payNicePg
   amount: string;
   type: ChargeRefundType;
 }
 
 const mockChargeRefundRecords: ChargeRefundRecord[] = [
-  { id: 1, date: "3월 5일 (화) 17:00", method: "신용카드 | 나이스 PG", amount: "130,000", type: "USE" },
-  { id: 2, date: "3월 5일 (화) 17:00", method: "신용카드 | 나이스 PG", amount: "130,000", type: "CHARGE" },
-  { id: 3, date: "3월 5일 (화) 17:00", method: "신용카드 | 나이스 PG", amount: "130,000", type: "REFUND" },
+  { id: 1, date: new Date(2024, 2, 5, 17, 0), methodKey: "mock.payNicePg", amount: "130,000", type: "USE" },
+  { id: 2, date: new Date(2024, 2, 5, 17, 0), methodKey: "mock.payNicePg", amount: "130,000", type: "CHARGE" },
+  { id: 3, date: new Date(2024, 2, 5, 17, 0), methodKey: "mock.payNicePg", amount: "130,000", type: "REFUND" },
 ];
 
 type FilterType = "ALL" | ChargeRefundType;
@@ -197,8 +197,8 @@ export default function OlivePointPage({ onBack, onRefundComplete }: OlivePointP
                         }}
                       >
                         <div style={s.reqLeft}>
-                          <span style={s.reqDate}>{r.date}</span>
-                          <span style={s.reqTitle}>{r.method}</span>
+                          <span style={s.reqDate}>{formatDateTimeWithDay(r.date)}</span>
+                          <span style={s.reqTitle}>{t(r.methodKey)}</span>
                         </div>
                         <div style={s.reqRight}>
                           <span style={{ ...s.reqStatusBadge, backgroundColor: cfg.bg, color: cfg.color }}>
@@ -216,8 +216,32 @@ export default function OlivePointPage({ onBack, onRefundComplete }: OlivePointP
         })()}
 
         {activeTab === "payment" && (
-          <div style={s.emptyWrap}>
-            <span style={s.emptyText}>{t("common.noData")}</span>
+          <div style={s.mgmtWrap}>
+            <div style={s.mgmtGroup}>
+              <div style={s.mgmtRow}>
+                <span style={s.mgmtRowLabel}>{t("paymentMgmt.methodMgmt")}</span>
+                <ChevronRight size={18} strokeWidth={2} color={colors.gray2} />
+              </div>
+              <div style={s.mgmtDivider} />
+              <div style={s.mgmtRow}>
+                <span style={s.mgmtRowLabel}>{t("paymentMgmt.password")}</span>
+                <ChevronRight size={18} strokeWidth={2} color={colors.gray2} />
+              </div>
+              <div style={s.mgmtDivider} />
+              <div style={s.mgmtRow}>
+                <span style={s.mgmtRowLabel}>{t("paymentMgmt.email")}</span>
+                <ChevronRight size={18} strokeWidth={2} color={colors.gray2} />
+              </div>
+            </div>
+
+            <div style={s.mgmtGap} />
+
+            <div style={s.mgmtGroup}>
+              <div style={s.mgmtRow}>
+                <span style={s.mgmtRowLabel}>{t("paymentMgmt.unsubscribe")}</span>
+                <ChevronRight size={18} strokeWidth={2} color={colors.gray2} />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -519,6 +543,44 @@ const s: Record<string, CSSProperties> = {
   emptyText: {
     fontSize: 14,
     color: colors.gray2,
+  },
+
+  // 결제수단 관리 탭
+  mgmtWrap: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  mgmtGroup: {
+    backgroundColor: colors.white,
+    display: "flex",
+    flexDirection: "column",
+  },
+  mgmtGap: {
+    height: 8,
+    backgroundColor: colors.bg,
+  },
+  mgmtRow: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 18,
+    paddingBottom: 18,
+    paddingLeft: spacing.xl,
+    paddingRight: spacing.xl,
+    cursor: "pointer",
+  },
+  mgmtRowLabel: {
+    fontSize: 16,
+    fontWeight: 500,
+    color: colors.gray1,
+    letterSpacing: -0.2,
+  },
+  mgmtDivider: {
+    height: 1,
+    backgroundColor: colors.gray5,
+    marginLeft: spacing.xl,
+    marginRight: spacing.xl,
   },
 
   // Bottom

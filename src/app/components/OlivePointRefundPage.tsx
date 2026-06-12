@@ -8,20 +8,20 @@ import type { CSSProperties } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, headerTitleBase, radius, pillBadgeBase } from "../shared/tokens";
-import { formatAmountStr } from "../shared/formatters";
+import { formatAmountStr, formatDateTimeWithDay } from "../shared/formatters";
 import { showSuccessToast } from "../shared/toast";
 
 interface RefundItem {
   id: number;
-  date: string;
-  title: string;
+  date: Date;
+  titleKey: string;
   amount: string;
 }
 
 const mockRefundItems: RefundItem[] = [
-  { id: 1, date: "3월 5일 (화) 17:00", title: "중식 - 임직원", amount: "7,000" },
-  { id: 2, date: "3월 5일 (화) 17:00", title: "중식 - 임직원", amount: "7,000" },
-  { id: 3, date: "3월 5일 (화) 17:00", title: "중식 - 임직원", amount: "7,000" },
+  { id: 1, date: new Date(2024, 2, 5, 17, 0), titleKey: "mock.refundLunchStaff", amount: "7,000" },
+  { id: 2, date: new Date(2024, 2, 5, 17, 0), titleKey: "mock.refundLunchStaff", amount: "7,000" },
+  { id: 3, date: new Date(2024, 2, 5, 17, 0), titleKey: "mock.refundLunchStaff", amount: "7,000" },
 ];
 
 interface OlivePointRefundPageProps {
@@ -80,8 +80,8 @@ export default function OlivePointRefundPage({ onBack, onRefundItem, onRefundCom
           <div key={item.id} style={s.card}>
             <div style={s.topRow}>
               <div style={s.leftCol}>
-                <span style={s.date}>{item.date}</span>
-                <span style={s.title}>{item.title}</span>
+                <span style={s.date}>{formatDateTimeWithDay(item.date)}</span>
+                <span style={s.title}>{t(item.titleKey)}</span>
               </div>
               <div style={s.rightCol}>
                 <span style={s.badge}>{t("olivePointRefund.statusUsed")}</span>

@@ -13,14 +13,15 @@ import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, headerTitleBase, radius } from "../shared/tokens";
 import { formatAmount } from "../shared/formatters";
 import { showSuccessToast } from "../shared/toast";
+import PaymentManagementPage from "./PaymentManagementPage";
 
 type PayMethod = "olive" | "normal";
 type NormalTab = "transfer" | "card" | "virtual";
 type PresetSel = number | "custom" | null;
 
 const PRESETS = [10000, 20000, 30000, 50000, 100000];
-const CARD_OPTIONS = ["농협카드", "KB국민카드", "신한카드", "삼성카드", "현대카드", "롯데카드"];
-const REGISTERED_CARDS = [{ id: 1, name: "KB on 체크카드" }];
+const CARD_OPTIONS = ["mock.cardNH", "mock.cardKB", "mock.cardShinhan", "mock.cardSamsung", "mock.cardHyundai", "mock.cardLotte"];
+const REGISTERED_CARDS = [{ id: 1, nameKey: "mock.cardKBCheck" }];
 const MAX_AMOUNT = 100000;
 
 interface OlivePointChargePageProps {
@@ -37,6 +38,7 @@ export default function OlivePointChargePage({ onBack }: OlivePointChargePagePro
   const [cardOpen, setCardOpen] = useState(false);
   const [cardError, setCardError] = useState(false);
   const [activeCard, setActiveCard] = useState(0);
+  const [showPaymentMgmt, setShowPaymentMgmt] = useState(false);
 
   const handleCardScroll = (e: UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
@@ -157,7 +159,7 @@ export default function OlivePointChargePage({ onBack }: OlivePointChargePagePro
                     <div style={s.creditCard}>
                       <div style={s.cardChip} />
                       <div style={s.creditCardBottom}>
-                        <span style={s.creditCardName}>{c.name}</span>
+                        <span style={s.creditCardName}>{t(c.nameKey)}</span>
                         <span style={s.creditCardBrand}>Check</span>
                       </div>
                     </div>
@@ -185,8 +187,10 @@ export default function OlivePointChargePage({ onBack }: OlivePointChargePagePro
                     <span style={s.installmentValue}>{t("oliveCharge.installmentOnce")}</span>
                   </div>
                   <div style={s.cardNameBox}>
-                    <span style={s.cardNameText}>{REGISTERED_CARDS[activeCard].name}</span>
-                    <span style={s.cardSettingLink}>{t("oliveCharge.cardSetting")}</span>
+                    <span style={s.cardNameText}>{t(REGISTERED_CARDS[activeCard].nameKey)}</span>
+                    <button style={s.cardSettingLink} onClick={() => setShowPaymentMgmt(true)}>
+                      {t("oliveCharge.cardSetting")}
+                    </button>
                   </div>
                 </>
               )}
@@ -237,7 +241,7 @@ export default function OlivePointChargePage({ onBack }: OlivePointChargePagePro
                         {t("oliveCharge.cardLabel")}
                       </span>
                       <span style={{ ...s.cardSelectValue, color: selectedCard ? colors.primary : colors.gray2 }}>
-                        {selectedCard ?? t("oliveCharge.cardUnselected")}
+                        {selectedCard ? t(selectedCard) : t("oliveCharge.cardUnselected")}
                       </span>
                       <ChevronDown size={16} strokeWidth={2} color={selectedCard ? colors.primary : colors.gray2} />
                     </button>
@@ -249,7 +253,7 @@ export default function OlivePointChargePage({ onBack }: OlivePointChargePagePro
                             style={s.cardOption}
                             onClick={() => { setSelectedCard(c); setCardOpen(false); setCardError(false); }}
                           >
-                            {c}
+                            {t(c)}
                           </button>
                         ))}
                       </div>
@@ -320,6 +324,11 @@ export default function OlivePointChargePage({ onBack }: OlivePointChargePagePro
           {t("oliveCharge.payBtn")}
         </button>
       </div>
+
+      {/* ── 결제 관리 페이지 ── */}
+      {showPaymentMgmt && (
+        <PaymentManagementPage onBack={() => setShowPaymentMgmt(false)} />
+      )}
     </div>
   );
 }
@@ -627,6 +636,11 @@ const s: Record<string, CSSProperties> = {
     letterSpacing: -0.2,
     textDecoration: "underline",
     cursor: "pointer",
+    backgroundColor: "transparent",
+    border: "none",
+    padding: 0,
+    fontFamily,
+    flexShrink: 0,
   },
   plusCircle: {
     width: 36,

@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Bell, X } from "lucide-react";
 import { colors, fontFamily, spacing, radius, headerTitleBase } from "../shared/tokens";
 import { formatAmountStr } from "../shared/formatters";
+import QrIcon from "../../imports/QrIcon";
 import barcodeImg from "../../assets/barcode.png";
 import roundEmart24Logo from "../../assets/brands/round_emart24.png";
 import roundCuLogo from "../../assets/brands/round_cu.png";
@@ -56,11 +57,11 @@ export default function QrPaymentPage({
   const oliveDisabled = isFranchise;
 
   const brands = [
-    { name: "이마트24", logo: roundEmart24Logo },
-    { name: "CU", logo: roundCuLogo },
-    { name: "세븐일레븐", logo: roundSevenelevenLogo },
-    { name: "파리바게트", logo: roundParisbaguetteLogo },
-    { name: "본죽&비빔밥", logo: roundBonjukLogo },
+    { nameKey: "mock.brandEmart24", logo: roundEmart24Logo },
+    { nameKey: "mock.brandCU", logo: roundCuLogo },
+    { nameKey: "mock.brand7Eleven", logo: roundSevenelevenLogo },
+    { nameKey: "mock.brandParisBaguette", logo: roundParisbaguetteLogo },
+    { nameKey: "mock.brandBonjuk", logo: roundBonjukLogo },
   ];
 
   return (
@@ -131,9 +132,9 @@ export default function QrPaymentPage({
                 <div style={s.brandSwipeWrap}>
                   <div style={s.brandSwipeRow}>
                     {brands.map((brand) => (
-                      <div key={brand.name} style={s.brandItem}>
-                        <img src={brand.logo} alt={brand.name} style={s.brandRoundLogo} />
-                        <span style={s.brandName}>{brand.name}</span>
+                      <div key={brand.nameKey} style={s.brandItem}>
+                        <img src={brand.logo} alt={t(brand.nameKey)} style={s.brandRoundLogo} />
+                        <span style={s.brandName}>{t(brand.nameKey)}</span>
                       </div>
                     ))}
                   </div>
@@ -307,64 +308,76 @@ function CheckMark({ color }: { color: string }) {
   );
 }
 
-// ─── Payment Complete Popup (센터 모달) ───────────────────────
+// ─── Payment Complete Popup (바텀시트 레이어) ─────────────────
 function PaymentCompletePopup({ onClose, type }: { onClose: () => void; type: PaymentTab }) {
   const { t } = useTranslation();
+  const [slideIn, setSlideIn] = useState(false);
   const isFranchise = type === "franchise";
-  const storeName = isFranchise ? t("qrPay.storeFranchise") : t("qrPay.storeCafeteria");
+  const storeName = isFranchise ? t("qrPay.storeFranchise") : t("qrPay.cafeteriaName");
   const amount = isFranchise ? "7,500" : "4,700";
-  const paymentNo = isFranchise ? "7775024071900055" : "4357394287500012";
+  const paymentNo = isFranchise ? "7775024071900055" : "43573942875";
 
-  const handleCopy = () => {
-    navigator.clipboard?.writeText(paymentNo);
+  useEffect(() => {
+    requestAnimationFrame(() => setSlideIn(true));
+  }, []);
+
+  const handleClose = () => {
+    setSlideIn(false);
+    setTimeout(onClose, 280);
   };
 
   return (
-    <div style={popupStyles.overlay} onClick={onClose}>
-      <div style={popupStyles.popup} onClick={(e) => e.stopPropagation()}>
-        {/* 빨간 헤더 */}
-        <div style={popupStyles.popupHeader}>
-          <span style={popupStyles.popupHeaderText}>{t("qrPay.paymentComplete")}</span>
-        </div>
-
-        {/* 본문 */}
-        <div style={popupStyles.popupBody}>
-          <span style={popupStyles.popupDate}>{t("qrPay.soloPayment")} | 2024.07.19 12:00</span>
-
-          {/* 금액 카드 */}
-          <div style={popupStyles.popupAmountCard}>
-            <span style={popupStyles.popupAmount}>{formatAmountStr(amount)}</span>
-          </div>
-
-          {/* 가맹점 카드 */}
-          <div style={popupStyles.popupStoreCard}>
-            <span style={popupStyles.popupStoreName}>{storeName}</span>
-            <div style={popupStyles.popupPaymentNo}>
-              <span style={popupStyles.popupPaymentNoText}>{t("qrPay.paymentNumber")} {paymentNo}</span>
-              <button style={popupStyles.popupCopyBtn} onClick={handleCopy}>{t("qrPay.copy")}</button>
-            </div>
-          </div>
-
-          {/* 점선 구분 */}
-          <div style={popupStyles.popupDashed} />
-
-          {/* 닫기 버튼 */}
-          <button style={popupStyles.popupCloseBtn} onClick={onClose}>
-            {t("qrPay.close")}
+    <div
+      style={{ ...popupStyles.overlay, opacity: slideIn ? 1 : 0 }}
+      onClick={handleClose}
+    >
+      <div
+        style={{ ...popupStyles.sheet, transform: slideIn ? "translateY(0)" : "translateY(100%)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
+        <div style={popupStyles.sheetHeader}>
+          <span style={popupStyles.sheetTitle}>{t("qrPay.paymentComplete")}</span>
+          <button style={popupStyles.sheetClose} onClick={handleClose} aria-label={t("common.close")}>
+            <X size={18} strokeWidth={2.4} color={colors.gray1} />
           </button>
         </div>
-      </div>
 
-      {/* 파란 말풍선 (프랜차이즈만) */}
-      {isFranchise && (
-        <div style={popupStyles.bubbleWrap}>
-          <div style={popupStyles.bubbleArrow} />
-          <div style={popupStyles.bubble}>
-            <span style={popupStyles.bubbleLine}>{t("qrPay.bubbleLine1")}</span>
-            <span style={popupStyles.bubbleLine}>{t("qrPay.bubbleLine2")}</span>
+        {/* 금액 + 추가결제 */}
+        <div style={popupStyles.amountRow}>
+          <span style={popupStyles.amount}>{formatAmountStr(amount)}</span>
+          <button style={popupStyles.addPayBtn} onClick={handleClose}>
+            <div style={{ width: 16, height: 13, flexShrink: 0 }}><QrIcon /></div>
+            {t("qrPay.additionalPay")}
+          </button>
+        </div>
+
+        {/* 상세 */}
+        <div style={popupStyles.detailSection}>
+          <div style={popupStyles.detailRow}>
+            <span style={popupStyles.detailLabel}>{t("qrPay.paymentDate")}</span>
+            <span style={popupStyles.detailValue}>2023.09.06 11:13</span>
+          </div>
+          <div style={popupStyles.detailRow}>
+            <span style={popupStyles.detailLabel}>{t("qrPay.paymentNumber")}</span>
+            <span style={popupStyles.detailValue}>{paymentNo}</span>
+          </div>
+          <div style={popupStyles.detailRow}>
+            <span style={popupStyles.detailLabel}>{t("qrPay.paymentPlace")}</span>
+            <span style={popupStyles.detailValue}>{storeName}</span>
           </div>
         </div>
-      )}
+
+        {/* 이벤트 배너 */}
+        <div style={popupStyles.banner}>
+          <div style={popupStyles.bannerText}>
+            <span style={popupStyles.bannerTag}>{t("restaurantCafe.bannerTag")}</span>
+            <span style={popupStyles.bannerSub}>{t("qrPay.surveyBannerSub")}</span>
+            <span style={popupStyles.bannerTitle}>{t("qrPay.surveyBannerTitle")}</span>
+          </div>
+          <span style={popupStyles.bannerEmoji}>👍</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -479,152 +492,151 @@ const popupStyles: Record<string, CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(25,26,28,0.45)",
     zIndex: 300,
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    gap: 12,
+    justifyContent: "flex-end",
+    transition: "opacity 0.28s ease",
+    fontFamily,
   },
-  popup: {
-    width: "100%",
-    maxWidth: 340,
+  sheet: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  popupHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    height: 52,
-    backgroundColor: colors.primary,
-  },
-  popupHeaderText: {
-    fontSize: 18,
-    fontWeight: 700,
-    color: colors.white,
-    letterSpacing: -0.2,
-  },
-  popupBody: {
-    padding: "24px 20px 20px",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 24,
+    paddingLeft: spacing.xl,
+    paddingRight: spacing.xl,
+    paddingBottom: 28,
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    gap: 16,
+    transition: "transform 0.28s cubic-bezier(0.22,1,0.36,1)",
   },
-  popupDate: {
+  sheetHeader: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 24,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.2,
+  },
+  sheetClose: {
+    width: 30,
+    height: 30,
+    borderRadius: 999,
+    backgroundColor: colors.gray6,
+    border: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    padding: 0,
+    flexShrink: 0,
+  },
+  amountRow: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 26,
+  },
+  amount: {
+    fontSize: 30,
+    fontWeight: 800,
+    color: colors.black,
+    letterSpacing: -0.4,
+  },
+  addPayBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    height: 36,
+    paddingLeft: 16,
+    paddingRight: 16,
+    backgroundColor: colors.primary,
+    borderRadius: 100,
+    border: "none",
+    color: colors.white,
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: -0.13,
+    cursor: "pointer",
+    fontFamily,
+    flexShrink: 0,
+  },
+  detailSection: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 18,
+    marginBottom: 24,
+  },
+  detailRow: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  detailLabel: {
     fontSize: 14,
     fontWeight: 500,
     color: colors.black,
-    letterSpacing: -0.2,
+    letterSpacing: -0.14,
+    flexShrink: 0,
   },
-  popupAmountCard: {
-    width: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "28px 0",
-    border: `1px solid ${colors.gray5}`,
-    borderRadius: 12,
-  },
-  popupAmount: {
-    fontSize: 36,
-    fontWeight: 800,
-    color: colors.black,
-    letterSpacing: -0.5,
-  },
-  popupStoreCard: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 8,
-    padding: "20px 0",
-    backgroundColor: colors.gray7,
-    borderRadius: 12,
-  },
-  popupStoreName: {
-    fontSize: 17,
+  detailValue: {
+    fontSize: 14,
     fontWeight: 700,
     color: colors.black,
-    letterSpacing: -0.2,
+    letterSpacing: -0.14,
+    textAlign: "right",
   },
-  popupPaymentNo: {
+  banner: {
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: 12,
+    height: 92,
+    background: "linear-gradient(120deg, #FF7AA2 0%, #FF6B5B 60%, #FF8A4C 100%)",
     display: "flex",
+    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
+    paddingLeft: 18,
+    paddingRight: 16,
   },
-  popupPaymentNoText: {
-    fontSize: 13,
-    fontWeight: 400,
-    color: colors.gray1,
-    letterSpacing: -0.2,
+  bannerText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    minWidth: 0,
   },
-  popupCopyBtn: {
+  bannerTag: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: "rgba(255,255,255,0.9)",
+    letterSpacing: 0.3,
+  },
+  bannerSub: {
     fontSize: 12,
     fontWeight: 600,
-    color: colors.gray1,
-    backgroundColor: "transparent",
-    border: `1px solid ${colors.gray3}`,
-    borderRadius: 999,
-    paddingTop: 3,
-    paddingBottom: 3,
-    paddingLeft: 10,
-    paddingRight: 10,
-    cursor: "pointer",
-    fontFamily,
+    color: colors.white,
+    letterSpacing: -0.2,
   },
-  popupDashed: {
-    width: "100%",
-    borderTop: `2px dashed ${colors.gray5}`,
+  bannerTitle: {
+    fontSize: 18,
+    fontWeight: 800,
+    color: colors.white,
+    letterSpacing: -0.4,
   },
-  popupCloseBtn: {
-    width: "100%",
-    height: 50,
-    backgroundColor: colors.white,
-    border: `1px solid ${colors.gray5}`,
-    borderRadius: 12,
-    fontSize: 16,
-    fontWeight: 600,
-    color: colors.black,
-    cursor: "pointer",
-    fontFamily,
-  },
-  bubbleWrap: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  bubbleArrow: {
-    width: 0,
-    height: 0,
-    borderLeft: "6px solid transparent",
-    borderRight: "6px solid transparent",
-    borderBottom: "6px solid #3478F6",
-    marginBottom: -1,
-  },
-  bubble: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 2,
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingLeft: 18,
-    paddingRight: 18,
-    backgroundColor: "#3478F6",
-    borderRadius: 14,
-    boxShadow: "0 2px 8px rgba(52,120,246,0.35)",
-  },
-  bubbleLine: {
-    fontSize: 13,
-    fontWeight: 700,
-    color: "#fff",
-    letterSpacing: -0.13,
+  bannerEmoji: {
+    fontSize: 38,
+    flexShrink: 0,
   },
 };
 

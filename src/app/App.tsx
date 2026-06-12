@@ -62,6 +62,7 @@ import OldVersionQrPaymentPage from "./components/OldVersionQrPaymentPage";
 import OldVersionPaymentHistoryPage from "./components/OldVersionPaymentHistoryPage";
 import OldVersionMyOlivePage from "./components/OldVersionMyOlivePage";
 import GiftPage from "./components/GiftPage";
+import RestaurantCafeTab from "./components/RestaurantCafeTab";
 
 // ─── Keyframes ───────────────────────────────────────────────
 const animationKeyframes = `
@@ -1254,7 +1255,7 @@ function AppContent() {
             }}
           >
             <div style={styles.tabsRow}>
-              {([HomeTab.CAFETERIA, HomeTab.SIMPLE_MEAL] as HomeTab[]).map((tab) => (
+              {([HomeTab.CAFETERIA, HomeTab.SIMPLE_MEAL, HomeTab.RESTAURANT_CAFE] as HomeTab[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => {
@@ -1398,7 +1399,11 @@ function AppContent() {
           </div>
         )}
 
-        {/* ── Event Banner ── */}
+        {/* ── 식당·카페 탭 ── */}
+        {activeTab === HomeTab.RESTAURANT_CAFE && <RestaurantCafeTab />}
+
+        {/* ── Event Banner (식당·카페 제외) ── */}
+        {activeTab !== HomeTab.RESTAURANT_CAFE && (
         <div style={styles.bannerSection}>
           <div style={styles.bannerWrap}>
             <div style={styles.bannerCircle1} />
@@ -1417,6 +1422,7 @@ function AppContent() {
             />
           </div>
         </div>
+        )}
 
         {/* ── Meal Time Selector (구내식당 only) ── */}
         {activeTab === HomeTab.CAFETERIA && (

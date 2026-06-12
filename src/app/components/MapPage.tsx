@@ -16,30 +16,28 @@ interface MapPageProps {
 
 interface Restaurant {
   id: number;
-  name: string;
-  address: string;
-  fullAddress: string;
+  nameKey: string;
+  cuisineKey: string;
+  fullAddressKey: string;
   distance: string;
   phone: string;
-  badge: string;
   category: "food" | "cafe" | "etc";
   lat: number;
   lng: number;
-  img: string;
 }
 
-/* 마곡역 주변 mock 가맹점 */
+/* 마곡역 주변 mock 가맹점 (현지화: name/address/fullAddress는 t() 키) */
 const mockRestaurants: Restaurant[] = [
-  { id: 1, name: "옥돌현옥", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 공항대로 627 1층", distance: "100m", phone: "02-1234-5678", badge: "현장결제", category: "food", lat: 37.5595, lng: 126.8290, img: "" },
-  { id: 2, name: "소망김밥", address: "서울 구로구 · 분식", fullAddress: "서울 강서구 마곡중앙8로 32", distance: "200m", phone: "02-2345-6789", badge: "현장결제", category: "food", lat: 37.5610, lng: 126.8275, img: "" },
-  { id: 3, name: "평양냉면", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 마곡중앙2로 15", distance: "350m", phone: "02-3456-7890", badge: "현장결제", category: "food", lat: 37.5582, lng: 126.8260, img: "" },
-  { id: 4, name: "컴포즈커피", address: "서울 구로구 · 카페", fullAddress: "서울 강서구 공항대로 지하 1층", distance: "150m", phone: "02-4567-8901", badge: "현장결제", category: "cafe", lat: 37.5600, lng: 126.8310, img: "" },
-  { id: 5, name: "사랑밥상", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 마곡동로3길 28", distance: "400m", phone: "02-5678-9012", badge: "현장결제", category: "food", lat: 37.5575, lng: 126.8320, img: "" },
-  { id: 6, name: "벤티프레소", address: "서울 구로구 · 카페", fullAddress: "서울 강서구 마곡중앙8로 50", distance: "180m", phone: "02-6789-0123", badge: "현장결제", category: "cafe", lat: 37.5615, lng: 126.8305, img: "" },
-  { id: 7, name: "짝귀 한우 마곡발산점", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 공항대로 614 2층", distance: "120m", phone: "02-7890-1234", badge: "현장결제", category: "food", lat: 37.5604, lng: 126.8295, img: "" },
-  { id: 8, name: "키볼", address: "서울 구로구 · 분식", fullAddress: "서울 강서구 마곡중앙6로 20", distance: "130m", phone: "02-8901-2345", badge: "현장결제", category: "food", lat: 37.5608, lng: 126.8300, img: "" },
-  { id: 9, name: "댄싱홍콩 마곡점", address: "서울 구로구 · 중식", fullAddress: "서울 강서구 마곡중앙2로 59 1층", distance: "500m", phone: "02-9012-3456", badge: "현장결제", category: "food", lat: 37.5568, lng: 126.8285, img: "" },
-  { id: 10, name: "산청숯불가든 마곡", address: "서울 구로구 · 한식", fullAddress: "서울 강서구 소명로6길 12", distance: "650m", phone: "02-0123-4567", badge: "현장결제", category: "food", lat: 37.5555, lng: 126.8282, img: "" },
+  { id: 1, nameKey: "mock.store1", cuisineKey: "mock.cuisineKorean", fullAddressKey: "mock.storeAddr1", distance: "100m", phone: "02-1234-5678", category: "food", lat: 37.5595, lng: 126.8290 },
+  { id: 2, nameKey: "mock.store2", cuisineKey: "mock.cuisineSnack", fullAddressKey: "mock.storeAddr2", distance: "200m", phone: "02-2345-6789", category: "food", lat: 37.5610, lng: 126.8275 },
+  { id: 3, nameKey: "mock.store3", cuisineKey: "mock.cuisineKorean", fullAddressKey: "mock.storeAddr3", distance: "350m", phone: "02-3456-7890", category: "food", lat: 37.5582, lng: 126.8260 },
+  { id: 4, nameKey: "mock.store4", cuisineKey: "mock.cuisineCafe", fullAddressKey: "mock.storeAddr4", distance: "150m", phone: "02-4567-8901", category: "cafe", lat: 37.5600, lng: 126.8310 },
+  { id: 5, nameKey: "mock.store5", cuisineKey: "mock.cuisineKorean", fullAddressKey: "mock.storeAddr5", distance: "400m", phone: "02-5678-9012", category: "food", lat: 37.5575, lng: 126.8320 },
+  { id: 6, nameKey: "mock.store6", cuisineKey: "mock.cuisineCafe", fullAddressKey: "mock.storeAddr6", distance: "180m", phone: "02-6789-0123", category: "cafe", lat: 37.5615, lng: 126.8305 },
+  { id: 7, nameKey: "mock.store7", cuisineKey: "mock.cuisineKorean", fullAddressKey: "mock.storeAddr7", distance: "120m", phone: "02-7890-1234", category: "food", lat: 37.5604, lng: 126.8295 },
+  { id: 8, nameKey: "mock.store8", cuisineKey: "mock.cuisineSnack", fullAddressKey: "mock.storeAddr8", distance: "130m", phone: "02-8901-2345", category: "food", lat: 37.5608, lng: 126.8300 },
+  { id: 9, nameKey: "mock.store9", cuisineKey: "mock.cuisineChinese", fullAddressKey: "mock.storeAddr9", distance: "500m", phone: "02-9012-3456", category: "food", lat: 37.5568, lng: 126.8285 },
+  { id: 10, nameKey: "mock.store10", cuisineKey: "mock.cuisineKorean", fullAddressKey: "mock.storeAddr10", distance: "650m", phone: "02-0123-4567", category: "food", lat: 37.5555, lng: 126.8282 },
 ];
 
 const MAP_CENTER: [number, number] = [37.5595, 126.8290];
@@ -221,13 +219,13 @@ export default function MapPage({ onBack }: MapPageProps) {
     /* Restaurant markers */
     mockRestaurants.forEach((r) => {
       const marker = L.marker([r.lat, r.lng], {
-        icon: createMarkerIcon(r.category, r.name, false),
+        icon: createMarkerIcon(r.category, t(r.nameKey), false),
       }).addTo(map);
 
       marker.on("click", () => {
         setSelectedId(r.id);
         markersRef.current.forEach((m, i) => {
-          m.setIcon(createMarkerIcon(mockRestaurants[i].category, mockRestaurants[i].name, mockRestaurants[i].id === r.id));
+          m.setIcon(createMarkerIcon(mockRestaurants[i].category, t(mockRestaurants[i].nameKey), mockRestaurants[i].id === r.id));
         });
       });
 
@@ -252,7 +250,7 @@ export default function MapPage({ onBack }: MapPageProps) {
       <div style={s.header}>
         <div style={s.headerInner}>
           <div style={s.headerLeftGroup}>
-            <button style={s.backBtn} onClick={onBack} aria-label="뒤로가기">
+            <button style={s.backBtn} onClick={onBack} aria-label={t("common.back")}>
               <ChevronLeft size={26} strokeWidth={2.2} color={colors.black} />
             </button>
             <h1 style={s.headerTitle}>{t("map.title")}</h1>
@@ -290,7 +288,7 @@ export default function MapPage({ onBack }: MapPageProps) {
         const closeStore = () => {
           setSelectedId(null);
           markersRef.current.forEach((m, i) => {
-            m.setIcon(createMarkerIcon(mockRestaurants[i].category, mockRestaurants[i].name, false));
+            m.setIcon(createMarkerIcon(mockRestaurants[i].category, t(mockRestaurants[i].nameKey), false));
           });
         };
         return (
@@ -311,7 +309,7 @@ export default function MapPage({ onBack }: MapPageProps) {
             </div>
             {/* Name */}
             <div style={s.storePanelNameRow}>
-              <span style={s.storePanelName}>{store.name}</span>
+              <span style={s.storePanelName}>{t(store.nameKey)}</span>
             </div>
             {/* Info */}
             <div style={s.storePanelContent}>
@@ -321,7 +319,7 @@ export default function MapPage({ onBack }: MapPageProps) {
               </div>
               <div style={s.storePanelInfoRow}>
                 <span style={s.storePanelLabel}>{t("map.address")}</span>
-                <span style={s.storePanelValue}>{store.fullAddress}</span>
+                <span style={s.storePanelValue}>{t(store.fullAddressKey)}</span>
               </div>
             </div>
             {/* Buttons */}
@@ -386,7 +384,7 @@ export default function MapPage({ onBack }: MapPageProps) {
               onClick={() => {
                 setSelectedId(r.id);
                 markersRef.current.forEach((m, i) => {
-                  m.setIcon(createMarkerIcon(mockRestaurants[i].category, mockRestaurants[i].name, mockRestaurants[i].id === r.id));
+                  m.setIcon(createMarkerIcon(mockRestaurants[i].category, t(mockRestaurants[i].nameKey), mockRestaurants[i].id === r.id));
                 });
                 mapInstanceRef.current?.setView([r.lat, r.lng], 17, { animate: true });
               }}
@@ -414,8 +412,8 @@ export default function MapPage({ onBack }: MapPageProps) {
                   />
                 </div>
                 <div style={s.cardText}>
-                  <span style={s.cardName}>{r.name}</span>
-                  <span style={s.cardAddress}>{r.address}</span>
+                  <span style={s.cardName}>{t(r.nameKey)}</span>
+                  <span style={s.cardAddress}>{t("mock.storeCity")} · {t(r.cuisineKey)}</span>
                   <span style={s.cardBadge}>{t("map.onSitePayment")}</span>
                 </div>
               </div>

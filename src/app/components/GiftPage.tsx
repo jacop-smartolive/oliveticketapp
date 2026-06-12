@@ -10,7 +10,7 @@ import type { CSSProperties } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, headerTitleBase, radius, pillBadgeBase } from "../shared/tokens";
-import { formatAmountStr } from "../shared/formatters";
+import { formatAmountStr, formatDateTimeWithDay } from "../shared/formatters";
 import { showSuccessToast } from "../shared/toast";
 import GiftRecipientSelectPage from "./GiftRecipientSelectPage";
 import type { GiftPerson } from "./GiftRecipientSelectPage";
@@ -20,17 +20,17 @@ type GiftType = "sent" | "received";
 
 interface GiftRecord {
   id: number;
-  date: string;
-  name: string;
+  date: Date;
+  nameKey: string;
   amount: string;
   type: GiftType;
 }
 
 const mockGifts: GiftRecord[] = [
-  { id: 1, date: "3월 5일 (화) 17:00", name: "홍길동", amount: "7,000", type: "sent" },
-  { id: 2, date: "3월 9일 (화) 17:00", name: "윤서아", amount: "7,000", type: "received" },
-  { id: 3, date: "3월 9일 (화) 17:00", name: "홍길동", amount: "7,000", type: "sent" },
-  { id: 4, date: "2월 5일 (화) 17:00", name: "윤채아", amount: "7,000", type: "received" },
+  { id: 1, date: new Date(2024, 2, 5, 17, 0), nameKey: "mock.nameHong", amount: "7,000", type: "sent" },
+  { id: 2, date: new Date(2024, 2, 9, 17, 0), nameKey: "mock.nameYoonSeoa", amount: "7,000", type: "received" },
+  { id: 3, date: new Date(2024, 2, 9, 17, 0), nameKey: "mock.nameHong", amount: "7,000", type: "sent" },
+  { id: 4, date: new Date(2024, 1, 5, 17, 0), nameKey: "mock.nameYoonChaea", amount: "7,000", type: "received" },
 ];
 
 type Tab = "all" | GiftType;
@@ -113,8 +113,8 @@ export default function GiftPage({ onBack }: GiftPageProps) {
               return (
                 <div key={g.id} style={s.card}>
                   <div style={s.cardLeft}>
-                    <span style={s.date}>{g.date}</span>
-                    <span style={s.name}>{g.name}</span>
+                    <span style={s.date}>{formatDateTimeWithDay(g.date)}</span>
+                    <span style={s.name}>{t(g.nameKey)}</span>
                   </div>
                   <div style={s.cardRight}>
                     <span style={{ ...s.badge, backgroundColor: cfg.bg, color: cfg.color }}>

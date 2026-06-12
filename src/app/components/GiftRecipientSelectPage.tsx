@@ -12,24 +12,24 @@ import { colors, fontFamily, spacing, headerTitleBase, radius } from "../shared/
 
 export interface GiftPerson {
   id: number;
-  name: string;
-  dept: string; // "스마트올리브 | 전략기획팀"
+  nameKey: string;
+  deptKey: string; // mock.deptStrategy 등
 }
 
 const recentPeople: GiftPerson[] = [
-  { id: 1, name: "홍길동", dept: "스마트올리브 | 전략기획팀" },
-  { id: 2, name: "홍길동", dept: "스마트올리브 | 전략기획팀" },
-  { id: 3, name: "홍길동", dept: "스마트올리브 | 전략기획팀" },
-  { id: 4, name: "홍길동", dept: "스마트올리브 | 전략기획팀" },
+  { id: 1, nameKey: "mock.nameHong", deptKey: "mock.deptStrategy" },
+  { id: 2, nameKey: "mock.nameHong", deptKey: "mock.deptStrategy" },
+  { id: 3, nameKey: "mock.nameHong", deptKey: "mock.deptStrategy" },
+  { id: 4, nameKey: "mock.nameHong", deptKey: "mock.deptStrategy" },
 ];
 
 const allPeople: GiftPerson[] = [
-  { id: 11, name: "신중", dept: "스마트올리브 | 전략기획팀" },
-  { id: 12, name: "신동현", dept: "스마트올리브 | 전략기획팀" },
-  { id: 13, name: "신예준", dept: "스마트올리브 | 전략기획팀" },
-  { id: 14, name: "신아라", dept: "스마트올리브 | 경영지원팀" },
-  { id: 15, name: "홍길동", dept: "스마트올리브 | 전략기획팀" },
-  { id: 16, name: "윤서아", dept: "스마트올리브 | 마케팅팀" },
+  { id: 11, nameKey: "mock.nameShinJung", deptKey: "mock.deptStrategy" },
+  { id: 12, nameKey: "mock.nameShinDonghyun", deptKey: "mock.deptStrategy" },
+  { id: 13, nameKey: "mock.nameShinYejun", deptKey: "mock.deptStrategy" },
+  { id: 14, nameKey: "mock.nameShinAra", deptKey: "mock.deptManagement" },
+  { id: 15, nameKey: "mock.nameHong", deptKey: "mock.deptStrategy" },
+  { id: 16, nameKey: "mock.nameYoonSeoa", deptKey: "mock.deptMarketing" },
 ];
 
 interface GiftRecipientSelectPageProps {
@@ -43,8 +43,10 @@ export default function GiftRecipientSelectPage({ onBack, onSelect }: GiftRecipi
   const [query, setQuery] = useState("");
 
   const results = query.trim()
-    ? allPeople.filter((p) => p.name.includes(query.trim()))
+    ? allPeople.filter((p) => t(p.nameKey).includes(query.trim()))
     : [];
+
+  const deptText = (p: GiftPerson) => `${t("mock.company")} | ${t(p.deptKey)}`;
 
   const exitSearch = () => {
     setSearchMode(false);
@@ -105,7 +107,7 @@ export default function GiftRecipientSelectPage({ onBack, onSelect }: GiftRecipi
           ) : (
             <div style={s.list}>
               {results.map((p) => (
-                <PersonRow key={p.id} person={p} onClick={() => onSelect(p)} />
+                <PersonRow key={p.id} name={t(p.nameKey)} dept={deptText(p)} onClick={() => onSelect(p)} />
               ))}
             </div>
           )
@@ -114,7 +116,7 @@ export default function GiftRecipientSelectPage({ onBack, onSelect }: GiftRecipi
             <div style={s.sectionHeader}>{t("gift.recentTitle")}</div>
             <div style={s.list}>
               {recentPeople.map((p) => (
-                <PersonRow key={p.id} person={p} onClick={() => onSelect(p)} />
+                <PersonRow key={p.id} name={t(p.nameKey)} dept={deptText(p)} onClick={() => onSelect(p)} />
               ))}
             </div>
           </>
@@ -124,13 +126,13 @@ export default function GiftRecipientSelectPage({ onBack, onSelect }: GiftRecipi
   );
 }
 
-function PersonRow({ person, onClick }: { person: GiftPerson; onClick: () => void }) {
+function PersonRow({ name, dept, onClick }: { name: string; dept: string; onClick: () => void }) {
   return (
     <button style={s.personRow} onClick={onClick}>
-      <div style={s.avatar}>{person.name.charAt(0)}</div>
+      <div style={s.avatar}>{name.charAt(0)}</div>
       <div style={s.personInfo}>
-        <span style={s.personName}>{person.name}</span>
-        <span style={s.personDept}>{person.dept}</span>
+        <span style={s.personName}>{name}</span>
+        <span style={s.personDept}>{dept}</span>
       </div>
     </button>
   );
