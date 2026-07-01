@@ -10,6 +10,7 @@ import { Crosshair, ChevronDown, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, radius } from "../shared/tokens";
 import RegionSelectPage from "./RegionSelectPage";
+import RestaurantDetailPage from "./RestaurantDetailPage";
 
 const ORDER_OPTIONS = ["restaurantCafe.onSite", "restaurantCafe.preOrder"];
 const CUISINE_OPTIONS = [
@@ -81,6 +82,7 @@ export default function RestaurantCafeTab() {
   const [sortInAnim, setSortInAnim] = useState(false);
   const [sortSel, setSortSel] = useState<"office" | "near" | "region">("office");
   const [showRegion, setShowRegion] = useState(false);
+  const [detailMerchant, setDetailMerchant] = useState<Merchant | null>(null);
 
   useEffect(() => {
     if (showSort) {
@@ -95,6 +97,16 @@ export default function RestaurantCafeTab() {
     setTimeout(() => setShowSort(false), 250);
   };
 
+  const applySort = (v: "office" | "near" | "region") => {
+    setSortSel(v);
+    closeSort();
+  };
+
+  const sortLabelKey =
+    sortSel === "office" ? "restaurantCafe.sortOffice"
+    : sortSel === "near" ? "restaurantCafe.sortNearMe"
+    : "restaurantCafe.sortMyRegion";
+
   const REGIONS = [
     "restaurantCafe.regionJongno",
     "restaurantCafe.regionDongdaemun",
@@ -108,7 +120,7 @@ export default function RestaurantCafeTab() {
       <div style={s.chipsRow}>
         <button style={{ ...s.chip, ...s.chipActive }} onClick={() => setShowSort(true)}>
           <Crosshair size={14} strokeWidth={2.2} color={colors.primary} />
-          {t("restaurantCafe.nearby")}
+          {t(sortLabelKey)}
         </button>
         <button style={s.chip} onClick={() => setShowFilter(true)}>
           {t("restaurantCafe.orderMethod")}
@@ -135,7 +147,11 @@ export default function RestaurantCafeTab() {
       {/* 가맹점 리스트 */}
       <div style={s.list}>
         {MERCHANTS.map((m, i) => (
-          <div key={m.id} style={{ ...s.card, borderBottom: i === MERCHANTS.length - 1 ? "none" : `1px solid ${colors.gray6}` }}>
+          <div
+            key={m.id}
+            style={{ ...s.card, borderBottom: i === MERCHANTS.length - 1 ? "none" : `1px solid ${colors.gray6}` }}
+            onClick={() => setDetailMerchant(m)}
+          >
             <div style={s.cardLeft}>
               <span style={s.name}>{t(m.nameKey)}</span>
               <span style={s.sub}>{t("mock.storeCity")} · {t(m.cuisineKey)}</span>
@@ -226,7 +242,7 @@ export default function RestaurantCafeTab() {
               {/* 회사주변 */}
               <button
                 style={{ ...s.sortCard, ...(sortSel === "office" ? s.sortCardActive : {}) }}
-                onClick={() => setSortSel("office")}
+                onClick={() => applySort("office")}
               >
                 <div style={s.sortCardText}>
                   <span style={s.sortCardTitle}>{t("restaurantCafe.sortOffice")}</span>
@@ -238,7 +254,7 @@ export default function RestaurantCafeTab() {
               {/* 내 주변 */}
               <button
                 style={{ ...s.sortCard, ...(sortSel === "near" ? s.sortCardActive : {}) }}
-                onClick={() => setSortSel("near")}
+                onClick={() => applySort("near")}
               >
                 <div style={s.sortCardText}>
                   <span style={s.sortCardTitle}>{t("restaurantCafe.sortNearMe")}</span>
@@ -250,7 +266,7 @@ export default function RestaurantCafeTab() {
               {/* 내 지역 */}
               <div
                 style={{ ...s.sortCard, ...s.sortCardColumn, ...(sortSel === "region" ? s.sortCardActive : {}) }}
-                onClick={() => setSortSel("region")}
+                onClick={() => applySort("region")}
               >
                 <div style={s.sortCardRow}>
                   <div style={s.sortCardText}>
@@ -287,6 +303,15 @@ export default function RestaurantCafeTab() {
 
       {/* ── 지역 선택 페이지 ── */}
       {showRegion && <RegionSelectPage onBack={() => setShowRegion(false)} />}
+
+      {/* ── 가맹점 상세 페이지 ── */}
+      {detailMerchant && (
+        <RestaurantDetailPage
+          nameKey={detailMerchant.nameKey}
+          cuisineKey={detailMerchant.cuisineKey}
+          onBack={() => setDetailMerchant(null)}
+        />
+      )}
     </div>
   );
 }

@@ -975,6 +975,14 @@ const en = {
     dj1: "Yuseong", dj2: "Seo-gu", dj3: "Dong-gu", dj4: "Jung-gu", dj5: "Daedeok",
   },
 
+  // ─── Restaurant detail ───────────────────────────────────
+  restaurantDetail: {
+    greeting: "Hello. We recommend new eateries.",
+    menuPay: "Menu Pay",
+    pointPay: "Point Pay",
+    m1: "Grapefruit Smoothie", m2: "Strawberry Latte", m3: "Americano", m4: "Green Tea Latte", m5: "Choco Cookie",
+  },
+
   // ─── Olive Point ─────────────────────────────────────────
   olivePoint: {
     title: "Olive Points",

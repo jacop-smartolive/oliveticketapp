@@ -975,6 +975,14 @@ const vi = {
     dj1: "Yuseong", dj2: "Seo-gu", dj3: "Dong-gu", dj4: "Jung-gu", dj5: "Daedeok",
   },
 
+  // ─── Chi tiết cửa hàng ───────────────────────────────────
+  restaurantDetail: {
+    greeting: "Xin chào. Chúng tôi gợi ý quán ăn mới.",
+    menuPay: "Thanh toán menu",
+    pointPay: "Thanh toán điểm",
+    m1: "Sinh tố bưởi", m2: "Latte dâu", m3: "Americano", m4: "Latte trà xanh", m5: "Bánh quy socola",
+  },
+
   // ─── Điểm Olive ──────────────────────────────────────────
   olivePoint: {
     title: "Điểm Olive",
