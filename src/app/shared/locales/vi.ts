@@ -223,11 +223,15 @@ const vi = {
     totalQty: "Tổng số lượng",
     totalOrderAmount: "Tổng tiền đơn hàng",
     paymentMethod: "Phương thức thanh toán",
-    totalAvailablePoints: "Tổng đim kh dụng",
+    totalAvailablePoints: "Tổng điểm khả dụng",
     corpPoint: "Điểm doanh nghiệp",
     availablePoint: "Điểm khả dụng",
+    olivePoint: "Điểm Olive",
     checkout: "Mua ngay",
     addMenuBtn: "Thêm thực đơn",
+    payTypeCorp: "Thanh toán điểm doanh nghiệp",
+    payTypePersonal: "Thanh toán điểm cá nhân",
+    payTypeMixed: "Thanh toán kết hợp",
   },
 
   // ─── Inquiry ───────────────────────────────────────────────
@@ -981,6 +985,16 @@ const vi = {
     menuPay: "Thanh toán menu",
     pointPay: "Thanh toán điểm",
     m1: "Sinh tố bưởi", m2: "Latte dâu", m3: "Americano", m4: "Latte trà xanh", m5: "Bánh quy socola",
+    pointInput: "Nhập điểm",
+    availableTotal: "Khả dụng {{amount}}",
+    payTogether: "Thanh toán chung",
+    paySolo: "Thanh toán riêng",
+    catCoffeeHot: "Cà phê (Nóng)",
+    catCoffeeIce: "Cà phê (Đá)",
+    catDecaf: "Decaf",
+    catSmoothie: "Sinh tố & Frappe",
+    catTea: "Trà",
+    call: "Gọi điện",
   },
 
   // ─── Điểm Olive ──────────────────────────────────────────

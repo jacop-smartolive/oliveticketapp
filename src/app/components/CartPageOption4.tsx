@@ -3,7 +3,7 @@
  * 간편식 예약 상품 담기 및 결제
  */
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, Minus, X, Building2, Home, ShoppingBag as ShoppingBagLucide } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Minus, X, Building2, Home, ShoppingBag as ShoppingBagLucide, Check } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import svgPaths from "../../imports/svg-2zgxdrqmnu";
@@ -53,8 +53,36 @@ export default function CartPageOption4({
   // Mock 포인트 데이터
   const corporatePoint = 37000;
   const availablePoint = 29000;
+  const olivePoint = 138000;
   const totalPoint = corporatePoint + availablePoint;
   const [showCorporatePoint, setShowCorporatePoint] = useState(false);
+
+  // 결제 유형 셀렉트
+  const PAY_TYPES = ["corp", "personal", "mixed"] as const;
+  const payTypeLabel: Record<(typeof PAY_TYPES)[number], string> = {
+    corp: t("cart.payTypeCorp"),
+    personal: t("cart.payTypePersonal"),
+    mixed: t("cart.payTypeMixed"),
+  };
+  const [payType, setPayType] = useState<(typeof PAY_TYPES)[number]>("corp");
+  const [payTypeOpen, setPayTypeOpen] = useState(false);
+
+  // 혼합 결제 — 결제수단 선택 (가맹점 상세와 동일)
+  const [selectedPts, setSelectedPts] = useState<Set<string>>(new Set(["corp"]));
+  const togglePt = (k: string) => {
+    setSelectedPts((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  };
+  const corpOn = selectedPts.has("corp");
+  const oliveOn = selectedPts.has("olive");
+  const mixedTotal = availablePoint + olivePoint;
+  // 결제 유형별 총 사용가능 금액 (뱃지)
+  const badgeAmount =
+    payType === "mixed" ? mixedTotal : payType === "personal" ? olivePoint : availablePoint;
 
   if (showCorporatePoint) {
     return <CorporatePointPage onBack={() => setShowCorporatePoint(false)} />;
@@ -72,6 +100,64 @@ export default function CartPageOption4({
               <ChevronLeft size={26} strokeWidth={2.2} color={colors.black} />
             </button>
             <span style={s.headerTitle}>{t("cart.title")}</span>
+          </div>
+
+          {/* 결제 유형 셀렉트 */}
+          <div style={s.selectWrap}>
+            <button
+              style={s.selectBtn}
+              onClick={() => setPayTypeOpen((v) => !v)}
+              aria-haspopup="listbox"
+              aria-expanded={payTypeOpen}
+            >
+              <span style={s.selectText}>{payTypeLabel[payType]}</span>
+              <ChevronDown
+                size={16}
+                strokeWidth={2.2}
+                color={colors.gray1}
+                style={{
+                  transform: payTypeOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease",
+                  flexShrink: 0,
+                }}
+              />
+            </button>
+
+            {payTypeOpen && (
+              <>
+                <div style={s.selectScrim} onClick={() => setPayTypeOpen(false)} />
+                <div style={s.selectMenu} role="listbox">
+                  {PAY_TYPES.map((type) => {
+                    const active = type === payType;
+                    return (
+                      <button
+                        key={type}
+                        style={s.selectOption}
+                        role="option"
+                        aria-selected={active}
+                        onClick={() => {
+                          setPayType(type);
+                          setPayTypeOpen(false);
+                        }}
+                      >
+                        <span
+                          style={{
+                            ...s.selectOptionText,
+                            color: active ? colors.primary : colors.black,
+                            fontWeight: active ? 700 : 500,
+                          }}
+                        >
+                          {payTypeLabel[type]}
+                        </span>
+                        {active && (
+                          <Check size={16} strokeWidth={2.5} color={colors.primary} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -139,52 +225,118 @@ export default function CartPageOption4({
           <div style={s.paymentSection}>
             <div style={s.paymentHeader}>
               <span style={s.paymentTitle}>{t("cart.paymentMethod")}</span>
+              <span style={s.ptBadge}>
+                {t("restaurantDetail.availableTotal", { amount: formatAmount(badgeAmount) })}
+              </span>
             </div>
 
             {/* 옵션 4: 미니멀 + 아이콘 강화형 */}
             <div style={s.pointContainer}>
-              {/* 기업포인트 */}
-              <div style={s.pointItem}>
-                <div style={s.pointItemRow}>
-                  <div style={s.pointItemHeader}>
-                    <div style={s.iconWrapper}>
-                      <Building2 size={20} strokeWidth={1.5} color={colors.gray1} />
+              {payType === "mixed" ? (
+                /* 혼합 결제 — 가맹점 상세와 동일한 결제수단 (그레이 라인 영역) */
+                <div style={s.ptCard}>
+                  <div style={s.ptMethodList}>
+                    {/* 기업포인트 (선택) */}
+                    <button style={s.ptRowBtn} onClick={() => togglePt("corp")}>
+                      <div style={s.ptRowLeft}>
+                        <PtCheck checked={corpOn} />
+                        <span style={s.ptLabel}>{t("cart.corpPoint")}</span>
+                      </div>
+                      <div style={s.ptRight}>
+                        <span style={{ ...s.ptValue, color: colors.gray1 }}>{formatAmount(corporatePoint)}</span>
+                        <ChevronRight size={16} strokeWidth={2} color={colors.gray2} />
+                      </div>
+                    </button>
+                    {/* 사용가능 포인트 (기업포인트 종속) */}
+                    <div style={s.ptSubBox}>
+                      <span style={s.ptSubLabel}>{t("cart.availablePoint")}</span>
+                      <span style={s.ptSubAmount}>{formatAmount(availablePoint)}</span>
                     </div>
-                    <span style={s.pointItemLabel}>{t("cart.corpPoint")}</span>
-                  </div>
-                  <div style={s.pointItemAmountWithArrow}>
-                    <span style={s.pointItemValue}>{formatAmount(corporatePoint)}</span>
-                    <ChevronRight
-                      size={16}
-                      strokeWidth={2}
-                      color="transparent"
-                    />
+
+                    <div style={s.ptDivider} />
+
+                    {/* 올리브 포인트 (선택) */}
+                    <button style={s.ptRowBtn} onClick={() => togglePt("olive")}>
+                      <div style={s.ptRowLeft}>
+                        <PtCheck checked={oliveOn} />
+                        <span style={s.ptLabel}>{t("cart.olivePoint")}</span>
+                      </div>
+                      <div style={s.ptRight}>
+                        <span style={s.ptValue}>{formatAmount(olivePoint)}</span>
+                        <ChevronRight size={16} strokeWidth={2} color={colors.gray2} />
+                      </div>
+                    </button>
                   </div>
                 </div>
-              </div>
-
-              {/* 구분선 */}
-              <div style={s.divider} />
-
-              {/* 사용가능 포인트 */}
-              <div style={{...s.pointItemActive, cursor: "pointer"}} onClick={() => setShowCorporatePoint(true)}>
-                <div style={s.pointItemRow}>
-                  <div style={s.pointItemHeader}>
-                    <div style={s.iconWrapperActive}>
-                      <PointIcon size={20} strokeWidth={1.5} color={colors.primary} />
+              ) : payType === "personal" ? (
+                /* 개인포인트 결제 — 올리브 포인트 (라인박스) */
+                <div style={s.methodCard}>
+                  <div style={{ ...s.pointItemActive, cursor: "pointer" }} onClick={() => setShowCorporatePoint(true)}>
+                    <div style={s.pointItemRow}>
+                      <div style={s.pointItemHeader}>
+                        <div style={s.iconWrapperActive}>
+                          <PointIcon size={20} strokeWidth={1.5} color={colors.primary} />
+                        </div>
+                        <span style={{ ...s.pointItemLabelActive, color: colors.black }}>{t("cart.olivePoint")}</span>
+                      </div>
+                      <div style={s.pointItemAmountWithArrow}>
+                        <span style={{ ...s.pointItemValueActive, color: colors.black }}>{formatAmount(olivePoint)}</span>
+                        <ChevronRight
+                          size={16}
+                          strokeWidth={2}
+                          color={colors.black}
+                        />
+                      </div>
                     </div>
-                    <span style={s.pointItemLabelActive}>{t("cart.availablePoint")}</span>
-                  </div>
-                  <div style={s.pointItemAmountWithArrow}>
-                    <span style={s.pointItemValueActive}>{formatAmount(availablePoint)}</span>
-                    <ChevronRight
-                      size={16}
-                      strokeWidth={2}
-                      color={colors.primary}
-                    />
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* 기업포인트 결제 — 기업포인트 + 사용가능 포인트 (라인박스) */
+                <div style={s.methodCard}>
+                  {/* 기업포인트 */}
+                  <div style={s.pointItem}>
+                    <div style={s.pointItemRow}>
+                      <div style={s.pointItemHeader}>
+                        <div style={s.iconWrapper}>
+                          <Building2 size={20} strokeWidth={1.5} color={colors.gray1} />
+                        </div>
+                        <span style={s.pointItemLabel}>{t("cart.corpPoint")}</span>
+                      </div>
+                      <div style={s.pointItemAmountWithArrow}>
+                        <span style={s.pointItemValue}>{formatAmount(corporatePoint)}</span>
+                        <ChevronRight
+                          size={16}
+                          strokeWidth={2}
+                          color="transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 구분선 */}
+                  <div style={s.divider} />
+
+                  {/* 사용가능 포인트 */}
+                  <div style={{...s.pointItemActive, cursor: "pointer"}} onClick={() => setShowCorporatePoint(true)}>
+                    <div style={s.pointItemRow}>
+                      <div style={s.pointItemHeader}>
+                        <div style={s.iconWrapperActive}>
+                          <PointIcon size={20} strokeWidth={1.5} color={colors.primary} />
+                        </div>
+                        <span style={s.pointItemLabelActive}>{t("cart.availablePoint")}</span>
+                      </div>
+                      <div style={s.pointItemAmountWithArrow}>
+                        <span style={s.pointItemValueActive}>{formatAmount(availablePoint)}</span>
+                        <ChevronRight
+                          size={16}
+                          strokeWidth={2}
+                          color={colors.primary}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -198,6 +350,27 @@ export default function CartPageOption4({
       </div>
         </>
       )}
+    </div>
+  );
+}
+
+// ─── 결제수단 체크 (혼합 결제) ─────────────────────────────────
+function PtCheck({ checked }: { checked: boolean }) {
+  return (
+    <div
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: 999,
+        border: checked ? "none" : `2px solid ${colors.gray3}`,
+        backgroundColor: checked ? colors.primary : "transparent",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      {checked && <Check size={13} strokeWidth={3} color={colors.white} />}
     </div>
   );
 }
@@ -332,6 +505,72 @@ const s: Record<string, CSSProperties> = {
   headerTitle: {
     ...headerTitleBase,
     color: colors.black,
+  },
+
+  /* ── 결제 유형 셀렉트 ── */
+  selectWrap: {
+    position: "relative",
+    flexShrink: 0,
+  },
+  selectBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    height: 34,
+    paddingLeft: 12,
+    paddingRight: 10,
+    backgroundColor: colors.inputBg,
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 8,
+    cursor: "pointer",
+  },
+  selectText: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: colors.black,
+    letterSpacing: -0.13,
+    whiteSpace: "nowrap",
+  },
+  selectScrim: {
+    position: "fixed",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 20,
+    backgroundColor: "transparent",
+  },
+  selectMenu: {
+    position: "absolute",
+    top: "calc(100% + 6px)",
+    right: 0,
+    minWidth: 160,
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 10,
+    boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+    paddingTop: 4,
+    paddingBottom: 4,
+    zIndex: 21,
+    overflow: "hidden",
+  },
+  selectOption: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    width: "100%",
+    height: 42,
+    paddingLeft: 14,
+    paddingRight: 14,
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+  },
+  selectOptionText: {
+    fontSize: 14,
+    letterSpacing: -0.14,
+    whiteSpace: "nowrap",
   },
 
   /* ── Tab Badge ── */
@@ -727,6 +966,115 @@ const s: Record<string, CSSProperties> = {
     marginRight: 0,
     marginBottom: 3,
     marginLeft: 0,
+  },
+
+  /* ── 혼합 결제 — 결제수단 카드 (그레이 라인) ── */
+  ptBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: 26,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderRadius: 999,
+    backgroundColor: colors.primaryLight,
+    fontSize: 12,
+    fontWeight: 700,
+    color: colors.primary,
+    letterSpacing: -0.2,
+  },
+  ptCard: {
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 12,
+    paddingTop: 4,
+    paddingRight: 16,
+    paddingBottom: 8,
+    paddingLeft: 16,
+  },
+  methodCard: {
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 12,
+    paddingTop: 2,
+    paddingRight: 16,
+    paddingBottom: 2,
+    paddingLeft: 16,
+  },
+  ptMethodList: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  ptRowBtn: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingTop: 18,
+    paddingBottom: 18,
+    width: "100%",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontFamily,
+  },
+  ptRowLeft: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minWidth: 0,
+  },
+  ptLabel: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: colors.black,
+    letterSpacing: -0.16,
+  },
+  ptRight: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    flexShrink: 0,
+  },
+  ptValue: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.18,
+  },
+  ptSubBox: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginLeft: 34,
+    marginTop: 2,
+    marginBottom: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: 14,
+    paddingRight: 14,
+    backgroundColor: "#F7F7F7",
+    borderRadius: 10,
+  },
+  ptSubLabel: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.2,
+  },
+  ptSubAmount: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.2,
+  },
+  ptDivider: {
+    height: 1,
+    backgroundColor: colors.gray5,
+    marginTop: 14,
+    marginBottom: 8,
   },
 
   /* ── Bottom Bar ── */

@@ -297,7 +297,10 @@ export default function MapPage({ onBack }: MapPageProps) {
             <div style={s.sheetHandle}><div style={s.sheetHandleBar} /></div>
             {/* Badge + buttons row */}
             <div style={s.storePanelTopRow}>
-              <span style={s.storePanelBadge}>{t("map.onSitePayment")}</span>
+              <div style={s.badgeRow}>
+                <span style={s.badgePill}>{t("map.onSitePayment")}</span>
+                <span style={s.badgePill}>{t("restaurantCafe.preOrder")}</span>
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <button style={s.storePanelCircleBtn}>
                   <Phone size={16} strokeWidth={0} fill={colors.gray1} color={colors.gray1} />
@@ -414,7 +417,10 @@ export default function MapPage({ onBack }: MapPageProps) {
                 <div style={s.cardText}>
                   <span style={s.cardName}>{t(r.nameKey)}</span>
                   <span style={s.cardAddress}>{t("mock.storeCity")} · {t(r.cuisineKey)}</span>
-                  <span style={s.cardBadge}>{t("map.onSitePayment")}</span>
+                  <div style={s.badgeRow}>
+                    <span style={s.badgePill}>{t("map.onSitePayment")}</span>
+                    <span style={s.badgePill}>{t("restaurantCafe.preOrder")}</span>
+                  </div>
                 </div>
               </div>
               <div style={s.cardImgPlaceholder}>
@@ -667,7 +673,7 @@ const s: Record<string, CSSProperties> = {
   cardText: {
     display: "flex",
     flexDirection: "column",
-    gap: 3,
+    gap: 6,
     minWidth: 0,
   },
   cardName: {
@@ -680,6 +686,26 @@ const s: Record<string, CSSProperties> = {
     fontSize: 14,
     color: colors.gray1,
     letterSpacing: -0.3,
+  },
+  badgeRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 6,
+    marginTop: 2,
+  },
+  badgePill: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: 24,
+    paddingLeft: 9,
+    paddingRight: 9,
+    borderRadius: 6,
+    backgroundColor: colors.gray6,
+    fontSize: 12,
+    fontWeight: 600,
+    color: colors.gray1,
+    letterSpacing: -0.2,
+    whiteSpace: "nowrap" as const,
   },
   cardBadge: {
     display: "inline-flex",

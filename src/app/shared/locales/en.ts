@@ -226,8 +226,12 @@ const en = {
     totalAvailablePoints: "Total Available Points",
     corpPoint: "Corp Points",
     availablePoint: "Available Points",
+    olivePoint: "Olive Points",
     checkout: "Checkout",
     addMenuBtn: "Add Menu",
+    payTypeCorp: "Corp Points Payment",
+    payTypePersonal: "Personal Points Payment",
+    payTypeMixed: "Mixed Payment",
   },
 
   // ─── Inquiry ───────────────────────────────────────────────
@@ -981,6 +985,16 @@ const en = {
     menuPay: "Menu Pay",
     pointPay: "Point Pay",
     m1: "Grapefruit Smoothie", m2: "Strawberry Latte", m3: "Americano", m4: "Green Tea Latte", m5: "Choco Cookie",
+    pointInput: "Enter points",
+    availableTotal: "{{amount}} available",
+    payTogether: "Pay together",
+    paySolo: "Pay alone",
+    catCoffeeHot: "Coffee (HOT)",
+    catCoffeeIce: "Coffee (ICE)",
+    catDecaf: "Decaf",
+    catSmoothie: "Smoothie & Frappe",
+    catTea: "Tea",
+    call: "Call",
   },
 
   // ─── Olive Point ─────────────────────────────────────────

@@ -3,7 +3,7 @@
  * 간편식 예약 상품 담기 및 결제
  */
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, Minus, X, Wallet, Building2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Minus, X, Wallet, Building2, Check } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import svgPaths from "../../imports/svg-2zgxdrqmnu";
@@ -43,6 +43,17 @@ export default function CartPage({
   onCheckout,
 }: CartPageProps) {
   const { t } = useTranslation();
+
+  // 결제 유형 셀렉트
+  const PAY_TYPES = ["corp", "personal", "mixed"] as const;
+  const payTypeLabel: Record<(typeof PAY_TYPES)[number], string> = {
+    corp: t("cart.payTypeCorp"),
+    personal: t("cart.payTypePersonal"),
+    mixed: t("cart.payTypeMixed"),
+  };
+  const [payType, setPayType] = useState<(typeof PAY_TYPES)[number]>("corp");
+  const [payTypeOpen, setPayTypeOpen] = useState(false);
+
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -66,6 +77,64 @@ export default function CartPage({
               <ChevronLeft size={26} strokeWidth={2.2} color={colors.black} />
             </button>
             <h1 style={s.headerTitle}>{t("cart.title")}</h1>
+          </div>
+
+          {/* 결제 유형 셀렉트 */}
+          <div style={s.selectWrap}>
+            <button
+              style={s.selectBtn}
+              onClick={() => setPayTypeOpen((v) => !v)}
+              aria-haspopup="listbox"
+              aria-expanded={payTypeOpen}
+            >
+              <span style={s.selectText}>{payTypeLabel[payType]}</span>
+              <ChevronDown
+                size={16}
+                strokeWidth={2.2}
+                color={colors.gray1}
+                style={{
+                  transform: payTypeOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease",
+                  flexShrink: 0,
+                }}
+              />
+            </button>
+
+            {payTypeOpen && (
+              <>
+                <div style={s.selectScrim} onClick={() => setPayTypeOpen(false)} />
+                <div style={s.selectMenu} role="listbox">
+                  {PAY_TYPES.map((type) => {
+                    const active = type === payType;
+                    return (
+                      <button
+                        key={type}
+                        style={s.selectOption}
+                        role="option"
+                        aria-selected={active}
+                        onClick={() => {
+                          setPayType(type);
+                          setPayTypeOpen(false);
+                        }}
+                      >
+                        <span
+                          style={{
+                            ...s.selectOptionText,
+                            color: active ? colors.primary : colors.black,
+                            fontWeight: active ? 700 : 500,
+                          }}
+                        >
+                          {payTypeLabel[type]}
+                        </span>
+                        {active && (
+                          <Check size={16} strokeWidth={2.5} color={colors.primary} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -326,6 +395,72 @@ const s: Record<string, CSSProperties> = {
     ...headerTitleBase,
     color: colors.black,
     margin: 0,
+  },
+
+  /* ── 결제 유형 셀렉트 ── */
+  selectWrap: {
+    position: "relative",
+    flexShrink: 0,
+  },
+  selectBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    height: 34,
+    paddingLeft: 12,
+    paddingRight: 10,
+    backgroundColor: colors.inputBg,
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 8,
+    cursor: "pointer",
+  },
+  selectText: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: colors.black,
+    letterSpacing: -0.13,
+    whiteSpace: "nowrap",
+  },
+  selectScrim: {
+    position: "fixed",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 20,
+    backgroundColor: "transparent",
+  },
+  selectMenu: {
+    position: "absolute",
+    top: "calc(100% + 6px)",
+    right: 0,
+    minWidth: 160,
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.gray5}`,
+    borderRadius: 10,
+    boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+    paddingTop: 4,
+    paddingBottom: 4,
+    zIndex: 21,
+    overflow: "hidden",
+  },
+  selectOption: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    width: "100%",
+    height: 42,
+    paddingLeft: 14,
+    paddingRight: 14,
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+  },
+  selectOptionText: {
+    fontSize: 14,
+    letterSpacing: -0.14,
+    whiteSpace: "nowrap",
   },
 
   /* ── Tab Badge ── */

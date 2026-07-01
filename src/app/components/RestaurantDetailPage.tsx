@@ -5,12 +5,14 @@
  * - 메뉴결제·포인트결제 토글 / 메뉴 리스트
  * ※ 레이아웃만 참고, 공통 디자인 토큰/규칙 준수
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
-import { ChevronLeft, ShoppingCart, Phone, Bookmark, MapPin } from "lucide-react";
+import { ChevronLeft, ShoppingCart, Phone, Bookmark, MapPin, ChevronRight, Check, HelpCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, radius, headerTitleBase } from "../shared/tokens";
 import { formatAmountStr } from "../shared/formatters";
+import { showSuccessToast } from "../shared/toast";
+import StoreMapPage from "./StoreMapPage";
 
 const HERO_IMG = "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=800";
 
@@ -20,6 +22,14 @@ const MENU = [
   { nameKey: "restaurantDetail.m3", price: "3,000" },
   { nameKey: "restaurantDetail.m4", price: "4,800" },
   { nameKey: "restaurantDetail.m5", price: "2,500" },
+];
+
+const CATEGORIES = [
+  "restaurantDetail.catCoffeeHot",
+  "restaurantDetail.catCoffeeIce",
+  "restaurantDetail.catDecaf",
+  "restaurantDetail.catSmoothie",
+  "restaurantDetail.catTea",
 ];
 
 type Tab = "onsite" | "preorder";
@@ -35,6 +45,49 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("onsite");
   const [payMode, setPayMode] = useState<PayMode>("menu");
+  const [pointAmount, setPointAmount] = useState(0);
+  const [preorderCat, setPreorderCat] = useState(0);
+  const [showMap, setShowMap] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
+
+  const toggleBookmark = () => {
+    setBookmarked((prev) => {
+      const next = !prev;
+      if (next) showSuccessToast(t("map.saved"));
+      return next;
+    });
+  };
+
+  const [showCall, setShowCall] = useState(false);
+  const [callIn, setCallIn] = useState(false);
+  useEffect(() => {
+    if (showCall) {
+      const tm = setTimeout(() => setCallIn(true), 10);
+      return () => clearTimeout(tm);
+    }
+    setCallIn(false);
+  }, [showCall]);
+  const closeCall = () => {
+    setCallIn(false);
+    setTimeout(() => setShowCall(false), 240);
+  };
+
+  const handlePointChange = (raw: string) => {
+    const digits = raw.replace(/[^\d]/g, "");
+    setPointAmount(digits ? parseInt(digits, 10) : 0);
+  };
+
+  const [selectedPts, setSelectedPts] = useState<Set<string>>(new Set(["corp"]));
+  const togglePt = (k: string) => {
+    setSelectedPts((prev) => {
+      const n = new Set(prev);
+      if (n.has(k)) n.delete(k); else n.add(k);
+      return n;
+    });
+  };
+  const corpOn = selectedPts.has("corp");
+  const oliveOn = selectedPts.has("olive");
+
 
   return (
     <div style={s.screen}>
@@ -49,11 +102,16 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
             <button style={s.circleBtn} aria-label="cart">
               <ShoppingCart size={19} strokeWidth={2.2} color={colors.black} />
             </button>
-            <button style={s.circleBtn} aria-label="call">
+            <button style={s.circleBtn} aria-label="call" onClick={() => setShowCall(true)}>
               <Phone size={18} strokeWidth={2.2} color={colors.black} />
             </button>
-            <button style={s.circleBtn} aria-label="bookmark">
-              <Bookmark size={19} strokeWidth={2.2} color={colors.black} />
+            <button style={s.circleBtn} aria-label="bookmark" onClick={toggleBookmark}>
+              <Bookmark
+                size={19}
+                strokeWidth={bookmarked ? 0 : 2.2}
+                fill={bookmarked ? colors.primary : "none"}
+                color={bookmarked ? colors.primary : colors.black}
+              />
             </button>
           </div>
         </div>
@@ -62,13 +120,28 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
         <div style={s.titleSection}>
           <div style={s.titleRow}>
             <h1 style={s.name}>{t(nameKey)}</h1>
-            <button style={s.mapBtn}>
+            <button style={s.mapBtn} onClick={() => setShowMap(true)}>
               <MapPin size={14} strokeWidth={2.2} color={colors.black} style={{ flexShrink: 0 }} />
               {t("map.title")}
             </button>
           </div>
           <p style={s.greeting}>{t("restaurantDetail.greeting")}</p>
+
+          {/* 태그 버튼 (현장결제 / 미리주문) */}
+          <div style={s.infoTagRow}>
+            <button style={s.infoTag}>
+              {t("restaurantCafe.onSite")}
+              <HelpCircle size={12} strokeWidth={2} color={colors.gray2} />
+            </button>
+            <button style={s.infoTag}>
+              {t("restaurantCafe.preOrder")}
+              <HelpCircle size={12} strokeWidth={2} color={colors.gray2} />
+            </button>
+          </div>
         </div>
+
+        {/* ── 굵은 구분 밴드 ── */}
+        <div style={s.sectionBand} />
 
         {/* ── 탭 (현장결제 / 미리주문) ── */}
         <div style={s.tabBar}>
@@ -91,6 +164,9 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
           })}
         </div>
 
+        {/* ── 현장결제 탭 (메뉴결제/포인트결제) ── */}
+        {tab === "onsite" && (
+        <div style={{ ...s.belowTab, backgroundColor: payMode === "point" ? "#F7F7F7" : colors.white }}>
         {/* ── 결제 토글 (메뉴 결제 / 포인트 결제) ── */}
         <div style={s.toggleWrap}>
           <div style={s.toggleTrack}>
@@ -114,19 +190,170 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
           </div>
         </div>
 
-        {/* ── 메뉴 리스트 ── */}
-        <div style={s.menuList}>
-          {MENU.map((m, i) => (
-            <div key={i} style={s.menuRow}>
-              <div style={s.menuInfo}>
-                <span style={s.menuName}>{t(m.nameKey)}</span>
-                <span style={s.menuPrice}>{formatAmountStr(m.price)}</span>
+        {/* ── 메뉴 결제: 메뉴 리스트 ── */}
+        {payMode === "menu" && (
+          <div style={s.menuList}>
+            {MENU.map((m, i) => (
+              <div key={i} style={s.menuRow}>
+                <div style={s.menuInfo}>
+                  <span style={s.menuName}>{t(m.nameKey)}</span>
+                  <span style={s.menuPrice}>{formatAmountStr(m.price)}</span>
+                </div>
+                <div style={s.menuThumb} />
               </div>
-              <div style={s.menuThumb} />
+            ))}
+          </div>
+        )}
+
+        {/* ── 포인트 결제 ── */}
+        {payMode === "point" && (
+          <div style={s.pointArea}>
+            {/* 포인트 입력 카드 */}
+            <div style={s.ptCard}>
+              <span style={s.ptCardTitle}>{t("restaurantDetail.pointInput")}</span>
+              <div style={s.ptInputBox}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={pointAmount > 0 ? pointAmount.toLocaleString() : ""}
+                  onChange={(e) => handlePointChange(e.target.value)}
+                  placeholder="0"
+                  style={s.ptInput}
+                />
+              </div>
             </div>
-          ))}
+
+            {/* 결제수단 카드 */}
+            <div style={s.ptCard}>
+              <div style={s.ptPayHeader}>
+                <span style={s.ptCardTitle}>{t("gift.paymentMethod")}</span>
+                <span style={s.ptBadge}>
+                  {t("restaurantDetail.availableTotal", { amount: formatAmountStr("167,000") })}
+                </span>
+              </div>
+              <div style={s.ptMethodList}>
+                {/* 기업포인트 (선택) */}
+                <button style={s.ptRowBtn} onClick={() => togglePt("corp")}>
+                  <div style={s.ptRowLeft}>
+                    <PtCheck checked={corpOn} />
+                    <span style={s.ptLabel}>{t("gift.corpPoint")}</span>
+                  </div>
+                  <div style={s.ptRight}>
+                    <span style={{ ...s.ptValue, color: colors.gray1 }}>{formatAmountStr("37,000")}</span>
+                    <ChevronRight size={16} strokeWidth={2} color={colors.gray2} />
+                  </div>
+                </button>
+                {/* 사용가능 포인트 (기업포인트 종속) */}
+                <div style={s.ptSubBox}>
+                  <span style={s.ptSubLabel}>{t("gift.corpAvailable")}</span>
+                  <span style={s.ptSubAmount}>{formatAmountStr("29,000")}</span>
+                </div>
+
+                <div style={s.ptDivider} />
+
+                {/* 올리브 포인트 (선택) */}
+                <button style={s.ptRowBtn} onClick={() => togglePt("olive")}>
+                  <div style={s.ptRowLeft}>
+                    <PtCheck checked={oliveOn} />
+                    <span style={s.ptLabel}>{t("gift.olivePoint")}</span>
+                  </div>
+                  <div style={s.ptRight}>
+                    <span style={s.ptValue}>{formatAmountStr("138,000")}</span>
+                    <ChevronRight size={16} strokeWidth={2} color={colors.gray2} />
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         </div>
+        )}
+
+        {/* ── 미리주문 탭 (카테고리 + 메뉴) ── */}
+        {tab === "preorder" && (
+          <div style={s.preorderArea}>
+            <div style={s.catChipRow}>
+              {CATEGORIES.map((c, i) => {
+                const active = preorderCat === i;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setPreorderCat(i)}
+                    style={{
+                      ...s.catChip,
+                      backgroundColor: active ? colors.black : colors.white,
+                      color: active ? colors.white : colors.gray2,
+                      border: active ? "none" : `1px solid ${colors.gray5}`,
+                    }}
+                  >
+                    {t(c)}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={s.menuList}>
+              {MENU.map((m, i) => (
+                <div key={i} style={s.menuRow}>
+                  <div style={s.menuInfo}>
+                    <span style={s.menuName}>{t(m.nameKey)}</span>
+                    <span style={s.menuPrice}>{formatAmountStr(m.price)}</span>
+                  </div>
+                  <div style={s.menuThumb} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ── 하단 버튼 (포인트 결제) ── */}
+      {tab === "onsite" && payMode === "point" && (
+        <div style={s.bottomBar}>
+          <button style={s.payTogetherBtn}>{t("restaurantDetail.payTogether")}</button>
+          <button style={s.paySoloBtn}>{t("restaurantDetail.paySolo")}</button>
+        </div>
+      )}
+
+      {/* ── 매장 지도 ── */}
+      {showMap && <StoreMapPage nameKey={nameKey} onBack={() => setShowMap(false)} />}
+
+      {/* ── 전화 액션시트 (iOS 스타일) ── */}
+      {showCall && (
+        <div
+          style={{ ...s.actionOverlay, opacity: callIn ? 1 : 0 }}
+          onClick={closeCall}
+        >
+          <div
+            style={{ ...s.actionWrap, transform: callIn ? "translateY(0)" : "translateY(100%)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={s.actionGroup}>
+              <div style={s.actionHeader}>02-1234-5678</div>
+              <div style={s.actionSep} />
+              <button style={s.actionCall} onClick={closeCall}>{t("restaurantDetail.call")}</button>
+            </div>
+            <button style={s.actionCancel} onClick={closeCall}>{t("common.cancel")}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PtCheck({ checked }: { checked: boolean }) {
+  return (
+    <div style={{
+      width: 22,
+      height: 22,
+      borderRadius: radius.full,
+      border: checked ? "none" : `2px solid ${colors.gray3}`,
+      backgroundColor: checked ? colors.primary : "transparent",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}>
+      {checked && <Check size={13} strokeWidth={3} color={colors.white} />}
     </div>
   );
 }
@@ -147,6 +374,14 @@ const s: Record<string, CSSProperties> = {
   scroll: {
     flex: 1,
     overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+  },
+  belowTab: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: "#F7F7F7",
     paddingBottom: 40,
   },
 
@@ -210,7 +445,7 @@ const s: Record<string, CSSProperties> = {
   },
   name: {
     ...headerTitleBase,
-    fontSize: 20,
+    fontSize: 22,
     color: colors.black,
     margin: 0,
     whiteSpace: "normal",
@@ -241,6 +476,43 @@ const s: Record<string, CSSProperties> = {
     color: colors.gray1,
     letterSpacing: -0.2,
     margin: 0,
+    marginTop: 8,
+  },
+  infoDivider: {
+    height: 1,
+    backgroundColor: colors.gray7,
+    marginTop: 16,
+    marginBottom: 14,
+  },
+  infoTagRow: {
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 14,
+  },
+  infoTag: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 3,
+    height: 28,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderRadius: 8,
+    backgroundColor: colors.gray6,
+    border: "none",
+    fontSize: 12,
+    fontWeight: 500,
+    color: colors.gray1,
+    letterSpacing: -0.2,
+    cursor: "pointer",
+    fontFamily,
+  },
+
+  sectionBand: {
+    height: 8,
+    backgroundColor: colors.gray6,
+    flexShrink: 0,
     marginTop: 8,
   },
 
@@ -283,7 +555,7 @@ const s: Record<string, CSSProperties> = {
     flexDirection: "row",
     gap: 4,
     padding: 4,
-    backgroundColor: colors.gray6,
+    backgroundColor: colors.gray5,
     borderRadius: radius.full,
   },
   toggleBtn: {
@@ -291,7 +563,7 @@ const s: Record<string, CSSProperties> = {
     height: 40,
     borderRadius: radius.full,
     border: "none",
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 700,
     letterSpacing: -0.2,
     cursor: "pointer",
@@ -299,11 +571,46 @@ const s: Record<string, CSSProperties> = {
     transition: "background-color 0.15s, color 0.15s",
   },
 
+  // 미리주문 (카테고리 + 메뉴)
+  preorderArea: {
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: colors.white,
+  },
+  catChipRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.lg,
+    paddingTop: 16,
+    paddingBottom: 8,
+    overflowX: "auto",
+    scrollbarWidth: "none",
+  } as CSSProperties,
+  catChip: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 38,
+    paddingLeft: 18,
+    paddingRight: 18,
+    borderRadius: radius.full,
+    fontSize: 14,
+    fontWeight: 600,
+    letterSpacing: -0.2,
+    cursor: "pointer",
+    fontFamily,
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+  },
+
   // 메뉴 리스트
   menuList: {
     display: "flex",
     flexDirection: "column",
     paddingTop: 8,
+    backgroundColor: colors.white,
   },
   menuRow: {
     display: "flex",
@@ -325,22 +632,315 @@ const s: Record<string, CSSProperties> = {
     flex: 1,
   },
   menuName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 700,
     color: colors.black,
     letterSpacing: -0.3,
   },
   menuPrice: {
-    fontSize: 15,
+    fontSize: 17,
+    fontWeight: 800,
+    color: colors.black,
+    letterSpacing: -0.3,
+  },
+  menuThumb: {
+    width: 82,
+    height: 82,
+    borderRadius: 12,
+    backgroundColor: colors.gray6,
+    flexShrink: 0,
+  },
+
+  // ── 포인트 결제 (카드형) ──
+  pointArea: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    backgroundColor: "#F7F7F7",
+    padding: spacing.lg,
+  },
+  ptCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    padding: "18px 18px",
+    display: "flex",
+    flexDirection: "column",
+  },
+  ptCardHeader: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  ptCardTitle: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.16,
+  },
+  ptReset: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    fontSize: 14,
+    fontWeight: 500,
+    color: colors.primary,
+    letterSpacing: -0.3,
+    cursor: "pointer",
+    backgroundColor: "transparent",
+    border: "none",
+    padding: 0,
+    fontFamily,
+  },
+  ptInputBox: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    border: `1.5px solid ${colors.gray7}`,
+    borderRadius: 12,
+    height: 50,
+    paddingLeft: 16,
+    paddingRight: 16,
+    marginTop: 14,
+    backgroundColor: "#F7F7F7",
+  },
+  ptInput: {
+    flex: 1,
+    minWidth: 0,
+    width: "100%",
+    border: "none",
+    outline: "none",
+    backgroundColor: "transparent",
+    fontSize: 17,
+    fontWeight: 600,
+    color: colors.black,
+    letterSpacing: -0.3,
+    textAlign: "left",
+    fontFamily,
+    padding: 0,
+  },
+  ptPayHeader: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  ptBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: 26,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderRadius: radius.full,
+    backgroundColor: colors.primaryLight,
+    fontSize: 12,
+    fontWeight: 700,
+    color: colors.primary,
+    letterSpacing: -0.2,
+  },
+  ptSubBox: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginLeft: 34,
+    marginTop: 2,
+    marginBottom: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: 14,
+    paddingRight: 14,
+    backgroundColor: "#F7F7F7",
+    borderRadius: 10,
+  },
+  ptSubLabel: {
+    fontSize: 14,
     fontWeight: 700,
     color: colors.black,
     letterSpacing: -0.2,
   },
-  menuThumb: {
-    width: 74,
-    height: 74,
-    borderRadius: 12,
+  ptSubAmount: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.2,
+  },
+  ptMethodList: {
+    display: "flex",
+    flexDirection: "column",
+    marginTop: 6,
+  },
+  ptRow: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingTop: 18,
+    paddingBottom: 18,
+  },
+  ptRowBtn: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingTop: 18,
+    paddingBottom: 18,
+    width: "100%",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontFamily,
+  },
+  ptRowLeft: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minWidth: 0,
+  },
+  ptIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     backgroundColor: colors.gray6,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
+  },
+  ptLabel: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: colors.black,
+    letterSpacing: -0.16,
+  },
+  ptRight: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    flexShrink: 0,
+  },
+  ptValue: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.18,
+  },
+  ptDivider: {
+    height: 1,
+    backgroundColor: colors.gray5,
+    marginTop: 14,
+    marginBottom: 8,
+  },
+
+  // 하단 버튼
+  bottomBar: {
+    position: "relative",
+    zIndex: 10,
+    display: "flex",
+    gap: 10,
+    padding: "16px 16px 24px",
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    boxShadow: "0 -1px 8px rgba(163,163,163,0.6)",
+    flexShrink: 0,
+  },
+  payTogetherBtn: {
+    flex: 1,
+    height: 50,
+    borderRadius: radius.md,
+    border: `1.5px solid ${colors.primary}`,
+    backgroundColor: colors.white,
+    color: colors.primary,
+    fontSize: 17,
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily,
+  },
+  paySoloBtn: {
+    flex: 1,
+    height: 50,
+    borderRadius: radius.md,
+    border: "none",
+    backgroundColor: colors.primary,
+    color: colors.white,
+    fontSize: 17,
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily,
+  },
+
+  // 전화 액션시트 (iOS 스타일)
+  actionOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    zIndex: 400,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-end",
+    padding: 8,
+    transition: "opacity 0.24s ease",
+    fontFamily,
+  },
+  actionWrap: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    transition: "transform 0.24s cubic-bezier(0.22,1,0.36,1)",
+  },
+  actionGroup: {
+    backgroundColor: "rgba(249,249,249,0.94)",
+    borderRadius: 14,
+    overflow: "hidden",
+    backdropFilter: "blur(10px)",
+  } as CSSProperties,
+  actionHeader: {
+    textAlign: "center",
+    fontSize: 13,
+    fontWeight: 500,
+    color: colors.gray1,
+    letterSpacing: -0.2,
+    paddingTop: 14,
+    paddingBottom: 14,
+  },
+  actionSep: {
+    height: 1,
+    backgroundColor: "rgba(0,0,0,0.08)",
+  },
+  actionCall: {
+    width: "100%",
+    height: 56,
+    border: "none",
+    backgroundColor: "transparent",
+    fontSize: 18,
+    fontWeight: 600,
+    color: colors.primary,
+    letterSpacing: -0.2,
+    cursor: "pointer",
+    fontFamily,
+  },
+  actionCancel: {
+    width: "100%",
+    height: 56,
+    borderRadius: 14,
+    border: "none",
+    backgroundColor: colors.white,
+    fontSize: 18,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.2,
+    cursor: "pointer",
+    fontFamily,
   },
 };
