@@ -2,7 +2,7 @@
  * 올리브식권 프로젝트 문서 페이지 — 2026.03.11 현재 시점 기준
  * — 페이지 맵 / 네비게이션 플로우 / 스타일 가이드 / 프로젝트 구조
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import {
   ChevronLeft,
@@ -36,6 +36,17 @@ type DocTab = "pagemap" | "navflow" | "styleguide" | "structure";
 
 interface DocsPageProps {
   onBack: () => void;
+}
+
+// ─── 탭 ↔ URL 해시 (#/docs/<tab>) ───────────────────────────────
+const DOC_HASH_PREFIX = "#/docs/";
+
+function hashToDocTab(hash: string): DocTab {
+  const seg = hash.startsWith(DOC_HASH_PREFIX)
+    ? hash.slice(DOC_HASH_PREFIX.length)
+    : "";
+  if (seg === "navflow" || seg === "styleguide" || seg === "structure") return seg;
+  return "pagemap";
 }
 
 // ─── Page Map Data ──────────────────────────────────────────
@@ -650,10 +661,34 @@ const DESIGN_RULES = [
 
 // ─── Component ───────────────────────────────────────────────
 export default function DocsPage({ onBack }: DocsPageProps) {
-  const [activeTab, setActiveTab] = useState<DocTab>("pagemap");
+  const [activeTab, setActiveTab] = useState<DocTab>(() =>
+    hashToDocTab(window.location.hash)
+  );
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
     new Set(pageTree.filter((p) => p.children).map((p) => p.id))
   );
+
+  // 활성 탭 → URL 해시 반영 (#/docs/<tab>) — 히스토리는 늘리지 않음
+  useEffect(() => {
+    const target = DOC_HASH_PREFIX + activeTab;
+    if (window.location.hash !== target) {
+      window.history.replaceState(null, "", target);
+    }
+  }, [activeTab]);
+
+  // 브라우저 뒤로/앞으로·주소 직접 입력 → 활성 탭 반영
+  useEffect(() => {
+    const applyHash = () => {
+      const next = hashToDocTab(window.location.hash);
+      setActiveTab((prev) => (prev === next ? prev : next));
+    };
+    window.addEventListener("popstate", applyHash);
+    window.addEventListener("hashchange", applyHash);
+    return () => {
+      window.removeEventListener("popstate", applyHash);
+      window.removeEventListener("hashchange", applyHash);
+    };
+  }, []);
 
   const toggleNode = (id: string) => {
     setExpandedNodes((prev) => {

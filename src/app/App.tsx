@@ -811,6 +811,9 @@ function getSimpleMeals(t: (key: string) => string) {
 
 const PULL_THRESHOLD = 60;
 
+// ─── 프로젝트 문서 페이지 ↔ URL 해시 라우팅 ─────────────────────
+const DOCS_HASH = "#/docs";
+
 export default function App() {
   return <AppContent />;
 }
@@ -883,13 +886,41 @@ function AppContent() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showFindAccount, setShowFindAccount] = useState(false);
-  const [showDocs, setShowDocs] = useState(false);
+  const [showDocs, setShowDocs] = useState(() =>
+    window.location.hash.startsWith(DOCS_HASH)
+  );
   const [showMap, setShowMap] = useState(false);
 
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
   const stickyRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // 프로젝트 문서 페이지 열림 → URL 해시 반영 (닫으면 원복)
+  useEffect(() => {
+    const onDocsRoute = window.location.hash.startsWith(DOCS_HASH);
+    if (showDocs && !onDocsRoute) {
+      window.history.pushState(null, "", DOCS_HASH);
+    } else if (!showDocs && onDocsRoute) {
+      // 문서 페이지를 닫을 때는 히스토리를 늘리지 않고 원복
+      window.history.replaceState(null, "", "#/");
+    }
+  }, [showDocs]);
+
+  // 브라우저 뒤로/앞으로·주소 직접 입력·최초 진입 → 문서 페이지 열림 동기화
+  useEffect(() => {
+    const applyHash = () => {
+      const onDocsRoute = window.location.hash.startsWith(DOCS_HASH);
+      setShowDocs((prev) => (prev === onDocsRoute ? prev : onDocsRoute));
+    };
+    applyHash();
+    window.addEventListener("popstate", applyHash);
+    window.addEventListener("hashchange", applyHash);
+    return () => {
+      window.removeEventListener("popstate", applyHash);
+      window.removeEventListener("hashchange", applyHash);
+    };
+  }, []);
 
   useEffect(() => {
     const scrollEl = scrollRef.current;
