@@ -7,14 +7,26 @@
  */
 import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
-import { ChevronLeft, ShoppingCart, Phone, Bookmark, MapPin, ChevronRight, Check, HelpCircle } from "lucide-react";
+import { ChevronLeft, ShoppingCart, Phone, Bookmark, MapPin, ChevronRight, Check, HelpCircle, Plus, Minus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, radius, headerTitleBase } from "../shared/tokens";
-import { formatAmountStr } from "../shared/formatters";
+import { formatAmountStr, formatAmount } from "../shared/formatters";
 import { showSuccessToast } from "../shared/toast";
 import StoreMapPage from "./StoreMapPage";
+import type { SimpleMealData } from "./SimpleMealDetailPage";
 
 const HERO_IMG = "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=800";
+
+// 메뉴 이미지 없음 → 회색 박스 플레이스홀더 (장바구니/완료화면 공용)
+const GRAY_IMG =
+  "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23E9EAEC'/%3E%3C/svg%3E";
+
+// 매장+메뉴 기반 고유 id (간편식 id와 충돌 방지: 1,000,000 이상)
+function menuHashId(s: string) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return 1_000_000 + (Math.abs(h) % 1_000_000);
+}
 
 const MENU = [
   { nameKey: "restaurantDetail.m1", price: "3,700" },
@@ -39,9 +51,13 @@ interface RestaurantDetailPageProps {
   nameKey: string;
   cuisineKey: string;
   onBack: () => void;
+  onAddToCart?: (item: SimpleMealData, quantity: number) => void;
+  onDirectPay?: (item: SimpleMealData, quantity: number) => void;
+  cartCount?: number;
+  onOpenCart?: () => void;
 }
 
-export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDetailPageProps) {
+export default function RestaurantDetailPage({ nameKey, onBack, onAddToCart, onDirectPay, cartCount = 0, onOpenCart }: RestaurantDetailPageProps) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("onsite");
   const [payMode, setPayMode] = useState<PayMode>("menu");
@@ -88,6 +104,36 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
   const corpOn = selectedPts.has("corp");
   const oliveOn = selectedPts.has("olive");
 
+  // ── 메뉴 클릭 → 주문 팝업 (현장결제/미리주문 공용) ──
+  const [orderMenu, setOrderMenu] = useState<{ nameKey: string; price: string } | null>(null);
+  const [orderQty, setOrderQty] = useState(1);
+  const openOrder = (m: { nameKey: string; price: string }) => {
+    setOrderMenu(m);
+    setOrderQty(1);
+  };
+  const orderUnitPrice = orderMenu ? parseInt(orderMenu.price.replace(/,/g, ""), 10) : 0;
+
+  const buildMeal = (m: { nameKey: string; price: string }): SimpleMealData => ({
+    id: menuHashId(`${nameKey}::${m.nameKey}`),
+    store: t(nameKey),
+    name: t(m.nameKey),
+    nameKey: m.nameKey,
+    storeKey: nameKey,
+    price: m.price,
+    remaining: 99,
+    img: GRAY_IMG,
+    deadlineValue: "",
+    pickupDate: new Date(),
+  });
+
+  const handleOrderAddCart = () => {
+    if (orderMenu) onAddToCart?.(buildMeal(orderMenu), orderQty);
+    setOrderMenu(null);
+  };
+  const handleOrderDirectPay = () => {
+    if (orderMenu) onDirectPay?.(buildMeal(orderMenu), orderQty);
+    setOrderMenu(null);
+  };
 
   return (
     <div style={s.screen}>
@@ -99,8 +145,11 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
             <ChevronLeft size={24} strokeWidth={2.4} color={colors.black} />
           </button>
           <div style={s.heroActions}>
-            <button style={s.circleBtn} aria-label="cart">
+            <button style={s.circleBtn} aria-label="cart" onClick={onOpenCart}>
               <ShoppingCart size={19} strokeWidth={2.2} color={colors.black} />
+              {cartCount > 0 && (
+                <span style={s.cartBadge}>{cartCount > 99 ? "99+" : cartCount}</span>
+              )}
             </button>
             <button style={s.circleBtn} aria-label="call" onClick={() => setShowCall(true)}>
               <Phone size={18} strokeWidth={2.2} color={colors.black} />
@@ -194,7 +243,7 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
         {payMode === "menu" && (
           <div style={s.menuList}>
             {MENU.map((m, i) => (
-              <div key={i} style={s.menuRow}>
+              <div key={i} style={s.menuRow} onClick={() => openOrder(m)} role="button" tabIndex={0}>
                 <div style={s.menuInfo}>
                   <span style={s.menuName}>{t(m.nameKey)}</span>
                   <span style={s.menuPrice}>{formatAmountStr(m.price)}</span>
@@ -293,7 +342,7 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
             </div>
             <div style={s.menuList}>
               {MENU.map((m, i) => (
-                <div key={i} style={s.menuRow}>
+                <div key={i} style={s.menuRow} onClick={() => openOrder(m)} role="button" tabIndex={0}>
                   <div style={s.menuInfo}>
                     <span style={s.menuName}>{t(m.nameKey)}</span>
                     <span style={s.menuPrice}>{formatAmountStr(m.price)}</span>
@@ -333,6 +382,51 @@ export default function RestaurantDetailPage({ nameKey, onBack }: RestaurantDeta
               <button style={s.actionCall} onClick={closeCall}>{t("restaurantDetail.call")}</button>
             </div>
             <button style={s.actionCancel} onClick={closeCall}>{t("common.cancel")}</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── 메뉴 주문 팝업 (간편식 주문 패널과 동일 디자인) ── */}
+      {orderMenu && (
+        <div style={s.orderOverlay} onClick={() => setOrderMenu(null)}>
+          <div style={s.orderSheet} onClick={(e) => e.stopPropagation()}>
+            {/* 수량 선택 */}
+            <div style={s.orderQtySection}>
+              <div style={s.orderHeaderRow}>
+                <span style={s.orderName}>{t(orderMenu.nameKey)}</span>
+                <span style={s.orderTotal}>{formatAmount(orderUnitPrice * orderQty)}</span>
+              </div>
+              <div style={s.orderQtyRow}>
+                <div style={s.orderQtyControl}>
+                  <button
+                    style={s.orderQtyBtn}
+                    onClick={() => setOrderQty((q) => Math.max(1, q - 1))}
+                    aria-label={t("common.decreaseQty")}
+                  >
+                    <Minus size={17} strokeWidth={2} color={orderQty <= 1 ? colors.gray3 : colors.black} />
+                  </button>
+                  <span style={s.orderQtyValue}>{orderQty}</span>
+                  <button
+                    style={s.orderQtyBtn}
+                    onClick={() => setOrderQty((q) => q + 1)}
+                    aria-label={t("common.increaseQty")}
+                  >
+                    <Plus size={17} strokeWidth={2} color={colors.black} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 담기 / 바로 결제 */}
+            <div style={s.orderBtnRow}>
+              <button style={s.orderCartBtn} onClick={handleOrderAddCart}>
+                <ShoppingCart size={16} strokeWidth={2.2} color={colors.primary} />
+                <span style={s.orderCartText}>{t("simpleMealDetail.addToCart")}</span>
+              </button>
+              <button style={s.orderPayBtn} onClick={handleOrderDirectPay}>
+                <span style={s.orderPayText}>{t("simpleMealDetail.directPay")}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -414,6 +508,25 @@ const s: Record<string, CSSProperties> = {
     cursor: "pointer",
     padding: 0,
     boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+    position: "relative",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    paddingLeft: 5,
+    paddingRight: 5,
+    borderRadius: radius.full,
+    backgroundColor: colors.primary,
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: 700,
+    lineHeight: "18px",
+    textAlign: "center",
+    boxSizing: "border-box",
+    boxShadow: "0 0 0 2px rgba(255,255,255,0.9)",
   },
   heroBack: {
     position: "absolute",
@@ -623,6 +736,7 @@ const s: Record<string, CSSProperties> = {
     paddingLeft: spacing.lg,
     paddingRight: spacing.lg,
     borderBottom: `1px solid ${colors.gray6}`,
+    cursor: "pointer",
   },
   menuInfo: {
     display: "flex",
@@ -942,5 +1056,159 @@ const s: Record<string, CSSProperties> = {
     letterSpacing: -0.2,
     cursor: "pointer",
     fontFamily,
+  },
+
+  // ── 메뉴 주문 팝업 (간편식 주문 패널과 동일) ──
+  orderOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 200,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-end",
+    fontFamily,
+  },
+  orderSheet: {
+    position: "relative",
+    zIndex: 10,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    boxShadow: "0 -2px 12px rgba(0,0,0,0.08)",
+    paddingTop: 16,
+    paddingRight: 16,
+    paddingBottom: 20,
+    paddingLeft: 16,
+    flexShrink: 0,
+  },
+  orderQtySection: {
+    backgroundColor: colors.bg,
+    borderRadius: 12,
+    paddingTop: 14,
+    paddingRight: 16,
+    paddingBottom: 14,
+    paddingLeft: 16,
+    marginBottom: 14,
+  },
+  orderHeaderRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 14,
+    gap: 12,
+  },
+  orderName: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: colors.black,
+    letterSpacing: -0.2,
+    lineHeight: "15px",
+    wordBreak: "keep-all",
+    overflowWrap: "break-word",
+    flex: 1,
+  },
+  orderTotal: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.17,
+    lineHeight: "15px",
+    flexShrink: 0,
+  },
+  orderQtyRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  orderQtyControl: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: 90,
+    height: 32,
+    backgroundColor: colors.white,
+    borderRadius: 6,
+    border: `1px solid ${colors.gray5}`,
+    paddingTop: 0,
+    paddingRight: 2,
+    paddingBottom: 0,
+    paddingLeft: 2,
+  },
+  orderQtyBtn: {
+    width: 28,
+    height: 28,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+    flexShrink: 0,
+  },
+  orderQtyValue: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.14,
+    textAlign: "center",
+    lineHeight: "20px",
+    minWidth: 20,
+    flex: 1,
+  },
+  orderBtnRow: {
+    display: "flex",
+    gap: 10,
+  },
+  orderCartBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    height: 48,
+    paddingLeft: 24,
+    paddingRight: 24,
+    borderRadius: 12,
+    border: `1.5px solid ${colors.primary}`,
+    backgroundColor: colors.white,
+    flexShrink: 0,
+    cursor: "pointer",
+    fontFamily,
+  },
+  orderCartText: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: colors.primary,
+    letterSpacing: -0.15,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  orderPayBtn: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    height: 48,
+    borderRadius: 12,
+    border: "none",
+    backgroundColor: colors.primary,
+    overflow: "hidden",
+    cursor: "pointer",
+    fontFamily,
+  },
+  orderPayText: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: colors.white,
+    letterSpacing: -0.15,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   },
 };

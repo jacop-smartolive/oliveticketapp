@@ -232,6 +232,9 @@ const vi = {
     payTypeCorp: "Thanh toán điểm doanh nghiệp",
     payTypePersonal: "Thanh toán điểm cá nhân",
     payTypeMixed: "Thanh toán kết hợp",
+    replaceTitle: "Giỏ hàng đang có sản phẩm của cửa hàng khác",
+    replaceDesc: "Giỏ hàng chỉ chứa sản phẩm của một cửa hàng. Xóa giỏ hàng hiện tại và thêm sản phẩm này?",
+    replaceConfirm: "Xóa & Thêm",
   },
 
   // ─── Inquiry ───────────────────────────────────────────────

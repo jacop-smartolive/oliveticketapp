@@ -460,7 +460,7 @@ const s: Record<string, CSSProperties> = {
     right: 0,
     bottom: 0,
     left: 0,
-    zIndex: 100,
+    zIndex: 150,
     display: "flex",
     flexDirection: "column",
     backgroundColor: colors.white,

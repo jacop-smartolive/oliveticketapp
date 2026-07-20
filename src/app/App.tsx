@@ -574,6 +574,85 @@ const styles: Record<string, CSSProperties> = {
     height: 24,
     animation: "spinLoader 1s linear infinite",
   },
+
+  /* ── 장바구니 교체 확인 팝업 ── */
+  replaceOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 200,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+  },
+  replaceCard: {
+    width: "100%",
+    maxWidth: 320,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    paddingTop: 28,
+    paddingRight: 20,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  replaceTitle: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: -0.3,
+    margin: 0,
+    textAlign: "center",
+  },
+  replaceDesc: {
+    fontSize: 14,
+    fontWeight: 500,
+    color: colors.gray1,
+    letterSpacing: -0.2,
+    lineHeight: 1.5,
+    margin: 0,
+    marginTop: 10,
+    textAlign: "center",
+  },
+  replaceBtnRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+    width: "100%",
+    marginTop: 24,
+  },
+  replaceCancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 10,
+    border: `1px solid ${colors.gray5}`,
+    backgroundColor: colors.white,
+    color: colors.gray1,
+    fontSize: 15,
+    fontWeight: 600,
+    letterSpacing: -0.2,
+    cursor: "pointer",
+    fontFamily: fontFamily,
+  },
+  replaceConfirmBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 10,
+    border: "none",
+    backgroundColor: colors.primary,
+    color: colors.white,
+    fontSize: 15,
+    fontWeight: 700,
+    letterSpacing: -0.2,
+    cursor: "pointer",
+    fontFamily: fontFamily,
+  },
 };
 
 // ─── Data ─────────────────────────────────────────────────────
@@ -890,6 +969,14 @@ function AppContent() {
     window.location.hash.startsWith(DOCS_HASH)
   );
   const [showMap, setShowMap] = useState(false);
+  // 바로결제 완료화면용 아이템 (간편식·가맹점 공통)
+  const [directPayItem, setDirectPayItem] = useState<
+    { name: string; price: number; quantity: number; img: string; pickupTime: string } | null
+  >(null);
+  // 다른 매장 상품 담기 충돌 시 대기 아이템 (교체 확인용)
+  const [pendingCartAdd, setPendingCartAdd] = useState<
+    { item: SimpleMealData; quantity: number } | null
+  >(null);
 
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
@@ -986,19 +1073,21 @@ function AppContent() {
   const simpleMeals = getSimpleMeals(t);
 
   // ─── Cart Functions ───────────────────────────────────────────
-  const handleAddToCart = useCallback((item: SimpleMealData, quantity: number) => {
+  // 매장(픽업 지점) 충돌 판단 키
+  const cartKeyOf = (it: { storeKey?: string; store: string }) => it.storeKey ?? it.store;
+
+  // 실제 담기 (충돌 검사 없이 추가)
+  const addItemToCart = useCallback((item: SimpleMealData, quantity: number) => {
     const priceNum = parseInt(item.price.replace(/,/g, ""), 10);
-    const existingItem = cartItems.find((ci) => ci.id === item.id);
-    
-    if (existingItem) {
-      setCartItems(
-        cartItems.map((ci) =>
+    setCartItems((prev) => {
+      const existing = prev.find((ci) => ci.id === item.id);
+      if (existing) {
+        return prev.map((ci) =>
           ci.id === item.id ? { ...ci, quantity: ci.quantity + quantity } : ci
-        )
-      );
-    } else {
-      setCartItems([
-        ...cartItems,
+        );
+      }
+      return [
+        ...prev,
         {
           id: item.id,
           store: item.store,
@@ -1011,12 +1100,45 @@ function AppContent() {
           pickupTime: formatMonthDayTime(item.pickupDate),
           quantity,
         },
-      ]);
+      ];
+    });
+  }, []);
+
+  const handleAddToCart = useCallback((item: SimpleMealData, quantity: number) => {
+    // 장바구니는 한 매장만 보유 — 다른 매장이면 교체 확인
+    const currentKey = cartItems.length > 0 ? cartKeyOf(cartItems[0]) : null;
+    if (currentKey && currentKey !== cartKeyOf(item)) {
+      setPendingCartAdd({ item, quantity });
+      return;
     }
-    
+    addItemToCart(item, quantity);
     setSelectedSimpleMeal(null);
     setQuickPurchaseMode(false);
-  }, [cartItems]);
+  }, [cartItems, addItemToCart]);
+
+  // 교체 확인: 비우고 담기
+  const confirmReplaceCart = useCallback(() => {
+    if (!pendingCartAdd) return;
+    setCartItems([]);
+    addItemToCart(pendingCartAdd.item, pendingCartAdd.quantity);
+    setSelectedSimpleMeal(null);
+    setQuickPurchaseMode(false);
+    setPendingCartAdd(null);
+  }, [pendingCartAdd, addItemToCart]);
+
+  // 바로결제 (간편식·가맹점 공통)
+  const handleDirectPay = useCallback((item: SimpleMealData, quantity: number) => {
+    const priceNum = parseInt(item.price.replace(/,/g, ""), 10);
+    setDirectPayItem({
+      name: item.name,
+      price: priceNum,
+      quantity,
+      img: item.img,
+      pickupTime: formatMonthDayTime(item.pickupDate),
+    });
+    setPaymentConfirmAmount(priceNum * quantity);
+    setPaymentSource("detail");
+  }, []);
 
   const handleUpdateQuantity = useCallback((id: number, quantity: number) => {
     setCartItems(
@@ -1431,7 +1553,14 @@ function AppContent() {
         )}
 
         {/* ── 식당·카페 탭 ── */}
-        {activeTab === HomeTab.RESTAURANT_CAFE && <RestaurantCafeTab />}
+        {activeTab === HomeTab.RESTAURANT_CAFE && (
+          <RestaurantCafeTab
+            onAddToCart={handleAddToCart}
+            onDirectPay={handleDirectPay}
+            cartCount={cartItems.reduce((sum, ci) => sum + ci.quantity, 0)}
+            onOpenCart={() => setShowCart(true)}
+          />
+        )}
 
         {/* ── Event Banner (식당·카페 제외) ── */}
         {activeTab !== HomeTab.RESTAURANT_CAFE && (
@@ -1869,10 +1998,7 @@ function AppContent() {
           quickPurchaseMode={quickPurchaseMode}
           noHero={selectedSimpleMeal.id === 103}
           onAddToCart={handleAddToCart}
-          onDirectPay={(amount) => {
-            setPaymentConfirmAmount(amount);
-            setPaymentSource("detail");
-          }}
+          onDirectPay={handleDirectPay}
         />
       )}
 
@@ -1923,6 +2049,24 @@ function AppContent() {
         />
       )}
 
+      {/* ── 장바구니 교체 확인 (다른 매장 담기) ── */}
+      {pendingCartAdd && (
+        <div style={styles.replaceOverlay} onClick={() => setPendingCartAdd(null)}>
+          <div style={styles.replaceCard} onClick={(e) => e.stopPropagation()}>
+            <p style={styles.replaceTitle}>{t("cart.replaceTitle")}</p>
+            <p style={styles.replaceDesc}>{t("cart.replaceDesc")}</p>
+            <div style={styles.replaceBtnRow}>
+              <button style={styles.replaceCancelBtn} onClick={() => setPendingCartAdd(null)}>
+                {t("common.cancel")}
+              </button>
+              <button style={styles.replaceConfirmBtn} onClick={confirmReplaceCart}>
+                {t("cart.replaceConfirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Payment Complete Popup → Page (간편식) / Popup (QR) ── */}
       {paymentCompleteAmount !== null && (paymentSource === "detail" || paymentSource === "cart") && (
         <PaymentCompletePage
@@ -1938,14 +2082,14 @@ function AppContent() {
                   pickupDateTime: ci.pickupTime,
                   paymentNumber: `PAY-${String(Date.now()).slice(-6)}${String(idx + 1).padStart(2, "0")}`,
                 }))
-              : paymentSource === "detail" && selectedSimpleMeal
+              : paymentSource === "detail" && directPayItem
               ? [{
-                  name: selectedSimpleMeal.name,
-                  price: parseInt(selectedSimpleMeal.price.replace(/,/g, ""), 10),
-                  quantity: 1,
-                  img: selectedSimpleMeal.img,
+                  name: directPayItem.name,
+                  price: directPayItem.price,
+                  quantity: directPayItem.quantity,
+                  img: directPayItem.img,
                   pickupStatus: PickupStatus.SCHEDULED,
-                  pickupDateTime: formatMonthDayTime(selectedSimpleMeal.pickupDate),
+                  pickupDateTime: directPayItem.pickupTime,
                   paymentNumber: `PAY-${String(Date.now()).slice(-8)}`,
                 }]
               : []
@@ -1955,6 +2099,7 @@ function AppContent() {
             if (paymentSource === "detail") {
               setSelectedSimpleMeal(null);
               setQuickPurchaseMode(false);
+              setDirectPayItem(null);
             } else if (paymentSource === "cart") {
               setCartItems([]);
               setShowCart(false);

@@ -232,6 +232,9 @@ const en = {
     payTypeCorp: "Corp Points Payment",
     payTypePersonal: "Personal Points Payment",
     payTypeMixed: "Mixed Payment",
+    replaceTitle: "Items from another store are in your cart",
+    replaceDesc: "Your cart can only hold items from one store. Empty the current cart and add this instead?",
+    replaceConfirm: "Empty & Add",
   },
 
   // ─── Inquiry ───────────────────────────────────────────────

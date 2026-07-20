@@ -233,6 +233,9 @@ const ko = {
     payTypeCorp: "기업포인트 결제",
     payTypePersonal: "개인포인트 결제",
     payTypeMixed: "혼합 결제",
+    replaceTitle: "다른 매장 상품이 담겨 있어요",
+    replaceDesc: "장바구니에는 한 매장의 상품만 담을 수 있어요. 기존 장바구니를 비우고 새로 담으시겠어요?",
+    replaceConfirm: "비우고 담기",
   },
 
   // ─── 문의하기 ──────────────────────────────────────────────

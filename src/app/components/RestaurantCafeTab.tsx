@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, radius } from "../shared/tokens";
 import RegionSelectPage from "./RegionSelectPage";
 import RestaurantDetailPage from "./RestaurantDetailPage";
+import type { SimpleMealData } from "./SimpleMealDetailPage";
 
 const ORDER_OPTIONS = ["restaurantCafe.onSite", "restaurantCafe.preOrder"];
 const CUISINE_OPTIONS = [
@@ -45,7 +46,14 @@ const MERCHANTS: Merchant[] = [
   { id: 10, nameKey: "mock.store8", cuisineKey: "mock.cuisineSnack", emoji: "🍢", thumbBg: "#FFF3E9", preOrder: false },
 ];
 
-export default function RestaurantCafeTab() {
+interface RestaurantCafeTabProps {
+  onAddToCart?: (item: SimpleMealData, quantity: number) => void;
+  onDirectPay?: (item: SimpleMealData, quantity: number) => void;
+  cartCount?: number;
+  onOpenCart?: () => void;
+}
+
+export default function RestaurantCafeTab({ onAddToCart, onDirectPay, cartCount = 0, onOpenCart }: RestaurantCafeTabProps) {
   const { t } = useTranslation();
   const [showFilter, setShowFilter] = useState(false);
   const [sheetIn, setSheetIn] = useState(false);
@@ -310,6 +318,10 @@ export default function RestaurantCafeTab() {
           nameKey={detailMerchant.nameKey}
           cuisineKey={detailMerchant.cuisineKey}
           onBack={() => setDetailMerchant(null)}
+          onAddToCart={onAddToCart}
+          onDirectPay={onDirectPay}
+          cartCount={cartCount}
+          onOpenCart={onOpenCart}
         />
       )}
     </div>

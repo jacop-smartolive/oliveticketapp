@@ -27,7 +27,7 @@ interface SimpleMealDetailPageProps {
   quickPurchaseMode?: boolean;
   noHero?: boolean;
   onAddToCart?: (item: SimpleMealData, quantity: number) => void;
-  onDirectPay?: (amount: number) => void;
+  onDirectPay?: (item: SimpleMealData, quantity: number) => void;
 }
 
 export default function SimpleMealDetailPage({
@@ -268,7 +268,7 @@ export default function SimpleMealDetailPage({
                 <ShoppingCart size={16} strokeWidth={2.2} color={colors.primary} />
                 <span style={s.cartBtnText}>{t("simpleMealDetail.addToCart")}</span>
               </button>
-              <button style={s.payBtn} onClick={() => onDirectPay?.(numericPrice * quantity)}>
+              <button style={s.payBtn} onClick={() => onDirectPay?.(item, quantity)}>
                 <span style={s.payBtnText}>{t("simpleMealDetail.directPay")}</span>
               </button>
             </div>
