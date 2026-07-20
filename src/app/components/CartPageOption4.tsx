@@ -24,6 +24,11 @@ export interface CartItem {
   img: string;
   pickupTime: string;
   quantity: number;
+  /** 출처 구분 — 가맹점(식당·카페) 상품이면 "restaurant" */
+  sourceType?: "simple" | "restaurant";
+  /** 가맹점 썸네일 (이모지 + 배경색) */
+  emoji?: string;
+  thumbBg?: string;
 }
 
 interface CartPageProps {
@@ -49,6 +54,15 @@ export default function CartPageOption4({
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+
+  // 상단 배지 — 가맹점 상품이면 가맹점명/썸네일, 아니면 간편식
+  const firstItem = items[0];
+  const isRestaurantCart = firstItem?.sourceType === "restaurant";
+  const badgeLabel = isRestaurantCart
+    ? firstItem.storeKey
+      ? t(firstItem.storeKey)
+      : firstItem.store
+    : t("cart.simpleMeal");
 
   // Mock 포인트 데이터
   const corporatePoint = 37000;
@@ -178,10 +192,19 @@ export default function CartPageOption4({
       <div style={s.scroll}>
         {/* ── Tab Badge ── */}
         <div style={s.tabBadge}>
-          <div style={s.tabIcon}>
-            <ShoppingBag color={colors.primary} size={14} />
+          <div
+            style={{
+              ...s.tabIcon,
+              ...(isRestaurantCart ? { backgroundColor: firstItem.thumbBg || colors.gray6 } : {}),
+            }}
+          >
+            {isRestaurantCart ? (
+              <span style={s.tabEmoji}>{firstItem.emoji}</span>
+            ) : (
+              <ShoppingBag color={colors.primary} size={14} />
+            )}
           </div>
-          <span style={s.tabText}>{t("cart.simpleMeal")}</span>
+          <span style={s.tabText}>{badgeLabel}</span>
           <ChevronRight size={12} strokeWidth={2.5} color={colors.gray1} />
         </div>
 
@@ -596,6 +619,10 @@ const s: Record<string, CSSProperties> = {
   tabIconImg: {
     width: 26,
     height: 26,
+  },
+  tabEmoji: {
+    fontSize: 15,
+    lineHeight: "16px",
   },
   tabText: {
     fontSize: 15,

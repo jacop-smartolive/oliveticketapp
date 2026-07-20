@@ -1099,6 +1099,9 @@ function AppContent() {
           img: item.img,
           pickupTime: formatMonthDayTime(item.pickupDate),
           quantity,
+          sourceType: (item as any).sourceType,
+          emoji: (item as any).emoji,
+          thumbBg: (item as any).thumbBg,
         },
       ];
     });

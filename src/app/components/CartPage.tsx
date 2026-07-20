@@ -23,6 +23,11 @@ export interface CartItem {
   img: string;
   pickupTime: string;
   quantity: number;
+  /** 출처 구분 — 가맹점(식당·카페) 상품이면 "restaurant" */
+  sourceType?: "simple" | "restaurant";
+  /** 가맹점 썸네일 (이모지 + 배경색) */
+  emoji?: string;
+  thumbBg?: string;
 }
 
 interface CartPageProps {

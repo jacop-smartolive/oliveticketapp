@@ -322,6 +322,8 @@ export default function RestaurantCafeTab({ onAddToCart, onDirectPay, cartCount 
           onDirectPay={onDirectPay}
           cartCount={cartCount}
           onOpenCart={onOpenCart}
+          emoji={detailMerchant.emoji}
+          thumbBg={detailMerchant.thumbBg}
         />
       )}
     </div>

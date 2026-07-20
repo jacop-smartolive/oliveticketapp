@@ -55,9 +55,11 @@ interface RestaurantDetailPageProps {
   onDirectPay?: (item: SimpleMealData, quantity: number) => void;
   cartCount?: number;
   onOpenCart?: () => void;
+  emoji?: string;
+  thumbBg?: string;
 }
 
-export default function RestaurantDetailPage({ nameKey, onBack, onAddToCart, onDirectPay, cartCount = 0, onOpenCart }: RestaurantDetailPageProps) {
+export default function RestaurantDetailPage({ nameKey, onBack, onAddToCart, onDirectPay, cartCount = 0, onOpenCart, emoji, thumbBg }: RestaurantDetailPageProps) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("onsite");
   const [payMode, setPayMode] = useState<PayMode>("menu");
@@ -113,18 +115,23 @@ export default function RestaurantDetailPage({ nameKey, onBack, onAddToCart, onD
   };
   const orderUnitPrice = orderMenu ? parseInt(orderMenu.price.replace(/,/g, ""), 10) : 0;
 
-  const buildMeal = (m: { nameKey: string; price: string }): SimpleMealData => ({
-    id: menuHashId(`${nameKey}::${m.nameKey}`),
-    store: t(nameKey),
-    name: t(m.nameKey),
-    nameKey: m.nameKey,
-    storeKey: nameKey,
-    price: m.price,
-    remaining: 99,
-    img: GRAY_IMG,
-    deadlineValue: "",
-    pickupDate: new Date(),
-  });
+  const buildMeal = (m: { nameKey: string; price: string }): SimpleMealData =>
+    ({
+      id: menuHashId(`${nameKey}::${m.nameKey}`),
+      store: t(nameKey),
+      name: t(m.nameKey),
+      nameKey: m.nameKey,
+      storeKey: nameKey,
+      price: m.price,
+      remaining: 99,
+      img: GRAY_IMG,
+      deadlineValue: "",
+      pickupDate: new Date(),
+      // 장바구니 배지용 출처/썸네일 정보 (구조적 확장)
+      sourceType: "restaurant",
+      emoji,
+      thumbBg,
+    } as SimpleMealData);
 
   const handleOrderAddCart = () => {
     if (orderMenu) onAddToCart?.(buildMeal(orderMenu), orderQty);
