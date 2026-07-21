@@ -11,8 +11,9 @@ import { ChevronLeft, ShoppingCart, Phone, Bookmark, MapPin, ChevronRight, Check
 import { useTranslation } from "react-i18next";
 import { colors, fontFamily, spacing, radius, headerTitleBase } from "../shared/tokens";
 import { formatAmountStr, formatAmount } from "../shared/formatters";
-import { showSuccessToast } from "../shared/toast";
+import { showSuccessToast, showPlainToast } from "../shared/toast";
 import StoreMapPage from "./StoreMapPage";
+import TogetherPaymentPage from "./TogetherPaymentPage";
 import type { SimpleMealData } from "./SimpleMealDetailPage";
 
 const HERO_IMG = "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=800";
@@ -106,6 +107,16 @@ export default function RestaurantDetailPage({ nameKey, onBack, onAddToCart, onD
   const corpOn = selectedPts.has("corp");
   const oliveOn = selectedPts.has("olive");
 
+  // ── 같이 결제 ──
+  const [showTogether, setShowTogether] = useState(false);
+  const handlePayTogether = () => {
+    if (pointAmount <= 0) {
+      showPlainToast(t("restaurantDetail.enterPoint"));
+      return;
+    }
+    setShowTogether(true);
+  };
+
   // ── 메뉴 클릭 → 주문 팝업 (현장결제/미리주문 공용) ──
   const [orderMenu, setOrderMenu] = useState<{ nameKey: string; price: string } | null>(null);
   const [orderQty, setOrderQty] = useState(1);
@@ -140,6 +151,30 @@ export default function RestaurantDetailPage({ nameKey, onBack, onAddToCart, onD
   const handleOrderDirectPay = () => {
     if (orderMenu) onDirectPay?.(buildMeal(orderMenu), orderQty);
     setOrderMenu(null);
+  };
+
+  // 포인트 결제 > 혼자 결제 → 간편식 바로결제와 동일 프로세스 (확인 팝업 → 완료)
+  const handlePaySolo = () => {
+    if (pointAmount <= 0) {
+      showPlainToast(t("restaurantDetail.enterPoint"));
+      return;
+    }
+    const pointMeal = {
+      id: menuHashId(`${nameKey}::point`),
+      store: t(nameKey),
+      name: t(nameKey),
+      nameKey,
+      storeKey: nameKey,
+      price: String(pointAmount),
+      remaining: 1,
+      img: GRAY_IMG,
+      deadlineValue: "",
+      pickupDate: new Date(),
+      sourceType: "restaurant",
+      emoji,
+      thumbBg,
+    } as SimpleMealData;
+    onDirectPay?.(pointMeal, 1);
   };
 
   return (
@@ -365,13 +400,23 @@ export default function RestaurantDetailPage({ nameKey, onBack, onAddToCart, onD
       {/* ── 하단 버튼 (포인트 결제) ── */}
       {tab === "onsite" && payMode === "point" && (
         <div style={s.bottomBar}>
-          <button style={s.payTogetherBtn}>{t("restaurantDetail.payTogether")}</button>
-          <button style={s.paySoloBtn}>{t("restaurantDetail.paySolo")}</button>
+          <button style={s.payTogetherBtn} onClick={handlePayTogether}>{t("restaurantDetail.payTogether")}</button>
+          <button style={s.paySoloBtn} onClick={handlePaySolo}>{t("restaurantDetail.paySolo")}</button>
         </div>
       )}
 
       {/* ── 매장 지도 ── */}
       {showMap && <StoreMapPage nameKey={nameKey} onBack={() => setShowMap(false)} />}
+
+      {/* ── 같이 결제 (포인트결제 — 메뉴보기 없음) ── */}
+      {showTogether && (
+        <TogetherPaymentPage
+          mode="point"
+          storeNameKey={nameKey}
+          totalAmount={pointAmount}
+          onBack={() => setShowTogether(false)}
+        />
+      )}
 
       {/* ── 전화 액션시트 (iOS 스타일) ── */}
       {showCall && (

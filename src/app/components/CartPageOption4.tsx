@@ -38,6 +38,7 @@ interface CartPageProps {
   onRemoveItem: (id: number) => void;
   onAddMenu: () => void;
   onCheckout: () => void;
+  onTogetherPay?: () => void;
 }
 
 export default function CartPageOption4({
@@ -47,6 +48,7 @@ export default function CartPageOption4({
   onRemoveItem,
   onAddMenu,
   onCheckout,
+  onTogetherPay,
 }: CartPageProps) {
   const { t } = useTranslation();
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -367,8 +369,11 @@ export default function CartPageOption4({
 
       {/* ── Bottom Button ── */}
       <div style={s.bottomBar}>
-        <button style={s.checkoutBtn} onClick={onCheckout}>
-          <span style={s.checkoutText}>{t("cart.checkout")}</span>
+        <button style={s.togetherBtn} onClick={onTogetherPay}>
+          <span style={s.togetherText}>{t("restaurantDetail.payTogether")}</span>
+        </button>
+        <button style={s.soloBtn} onClick={onCheckout}>
+          <span style={s.checkoutText}>{t("restaurantDetail.paySolo")}</span>
         </button>
       </div>
         </>
@@ -1108,6 +1113,9 @@ const s: Record<string, CSSProperties> = {
   bottomBar: {
     position: "relative",
     zIndex: 10,
+    display: "flex",
+    flexDirection: "row",
+    gap: 10,
     backgroundColor: colors.white,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
@@ -1118,20 +1126,36 @@ const s: Record<string, CSSProperties> = {
     paddingLeft: 16,
     flexShrink: 0,
   },
-  checkoutBtn: {
+  togetherBtn: {
+    flex: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    width: "100%",
+    height: 48,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    border: `1.5px solid ${colors.primary}`,
+    cursor: "pointer",
+    fontFamily,
+  },
+  togetherText: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: colors.primary,
+    letterSpacing: -0.3,
+    whiteSpace: "nowrap",
+  },
+  soloBtn: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     height: 48,
     backgroundColor: colors.primary,
     borderRadius: 12,
     border: "none",
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: 700,
-    letterSpacing: -0.16,
-    gap: 6,
+    cursor: "pointer",
+    fontFamily,
   },
   checkoutText: {
     fontSize: 17,

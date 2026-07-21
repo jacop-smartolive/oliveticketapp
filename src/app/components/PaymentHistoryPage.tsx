@@ -10,6 +10,7 @@ import {
   paymentCategoryKey, paymentStatusKey, filterTabKey, pickupStatusKey,
 } from "../shared/enums";
 import { formatDateTimeWithDay, formatAmountStr } from "../shared/formatters";
+import TogetherPaymentDetailPage from "./TogetherPaymentDetailPage";
 
 // ─── Types ───────────────────────────────────────────────────
 export interface PaymentItem {
@@ -25,10 +26,34 @@ export interface PaymentItem {
   pickupDateTime?: Date;
   deadlineDateTime?: Date;
   totalQuantity?: number;
+  /** 같이결제 내역 여부 */
+  isTogether?: boolean;
 }
 
 // ─── Mock Data ───
 const PAYMENTS: PaymentItem[] = [
+  {
+    id: 101,
+    category: PaymentCategory.CAFETERIA,
+    status: PaymentStatus.PAID,
+    storeName: "킹 돈가스",
+    storeNameKey: "mock.storeKimbap",
+    amount: "115,000",
+    date: new Date(2025, 2, 9, 11, 13),
+    img: "https://images.unsplash.com/photo-1602273660127-a0000560a4c1?w=200",
+    isTogether: true,
+  },
+  {
+    id: 102,
+    category: PaymentCategory.CAFETERIA,
+    status: PaymentStatus.CANCELLED,
+    storeName: "킹 돈가스",
+    storeNameKey: "mock.storeKimbap",
+    amount: "115,000",
+    date: new Date(2025, 2, 8, 18, 40),
+    img: "https://images.unsplash.com/photo-1602273660127-a0000560a4c1?w=200",
+    isTogether: true,
+  },
   {
     id: 1,
     category: PaymentCategory.CAFETERIA,
@@ -155,6 +180,15 @@ interface PaymentHistoryPageProps {
 export default function PaymentHistoryPage({ onBack, onItemClick }: PaymentHistoryPageProps) {
   const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState<FilterTab>(FilterTab.ALL);
+  const [togetherDetail, setTogetherDetail] = useState<PaymentItem | null>(null);
+
+  const handleItemClick = (item: PaymentItem) => {
+    if (item.isTogether) {
+      setTogetherDetail(item);
+      return;
+    }
+    onItemClick?.(item);
+  };
 
   const filteredPayments =
     activeFilter === FilterTab.ALL
@@ -197,10 +231,18 @@ export default function PaymentHistoryPage({ onBack, onItemClick }: PaymentHisto
           </div>
         ) : (
           filteredPayments.map((item) => (
-            <PaymentRow key={item.id} item={item} onItemClick={onItemClick} />
+            <PaymentRow key={item.id} item={item} onItemClick={handleItemClick} />
           ))
         )}
       </div>
+
+      {/* ── 같이결제 상세 ── */}
+      {togetherDetail && (
+        <TogetherPaymentDetailPage
+          cancelled={togetherDetail.status === PaymentStatus.CANCELLED}
+          onBack={() => setTogetherDetail(null)}
+        />
+      )}
     </div>
   );
 }

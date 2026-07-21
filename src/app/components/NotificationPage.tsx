@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronLeft, Check } from "lucide-react";
 import { colors, fontFamily, headerTitleBase } from "../shared/tokens";
 import { showSuccessToast } from "../shared/toast";
+import TogetherApprovePage from "./TogetherApprovePage";
 
 // ─── 로컬 컬러 ───────────────────────────────────────────────
 const localColors = {
@@ -14,6 +15,7 @@ const localColors = {
 
 // ─── 카테고리 타입 ────────────────────────────────────────────
 type NotifCategory =
+  | "togetherApprove"
   | "cafeteria"
   | "simpleMeal"
   | "cafeteriaCancel"
@@ -39,6 +41,7 @@ function getCategoryLabel(
   t: (key: string) => string
 ): string {
   const map: Record<NotifCategory, string> = {
+    togetherApprove:  t("notification.togetherApproveAlert"),
     cafeteria:        t("notification.cafeteriaPayAlert"),
     simpleMeal:       t("notification.simpleMealAlert"),
     cafeteriaCancel:  t("notification.cafeteriaCancelAlert"),
@@ -58,6 +61,11 @@ function getNotifMessage(
   t: (key: string, opts?: Record<string, string | number>) => string
 ): string {
   switch (item.category) {
+    case "togetherApprove":
+      return t("notification.togetherApproveMsg", {
+        name: t("mock.nameHong"),
+        amount: item.amount ?? "",
+      });
     case "cafeteria":
       return t("notification.cafeteriaPayMsg", { amount: item.amount ?? "" });
     case "simpleMeal":
@@ -84,6 +92,14 @@ function getNotifMessage(
 const INITIAL_READ_IDS = new Set([5, 6, 7, 8, 9]);
 
 const NOTIFICATIONS: Notification[] = [
+  {
+    id: 0,
+    category: "togetherApprove",
+    amount: "115,000",
+    timeKey: "notification.timeMinAgo",
+    timeParams: { min: 1 },
+    initialRead: false,
+  },
   {
     id: 1,
     category: "cafeteria",
@@ -176,6 +192,7 @@ export default function NotificationPage({ onBack, asNavTab }: NotificationPageP
   const { t } = useTranslation();
   const [readSet, setReadSet] = useState<Set<number>>(() => new Set(INITIAL_READ_IDS));
   const [allMarked, setAllMarked] = useState(false);
+  const [showApprove, setShowApprove] = useState(false);
   const staggerRef = useRef(false);
 
   const markOne = useCallback((id: number) => {
@@ -262,7 +279,10 @@ export default function NotificationPage({ onBack, asNavTab }: NotificationPageP
             <div
               key={item.id}
               style={styles.notificationItem}
-              onClick={() => markOne(item.id)}
+              onClick={() => {
+                markOne(item.id);
+                if (item.category === "togetherApprove") setShowApprove(true);
+              }}
             >
               {/* 좌측 미읽음 점 */}
               <div
@@ -291,6 +311,9 @@ export default function NotificationPage({ onBack, asNavTab }: NotificationPageP
           );
         })}
       </div>
+
+      {/* ── 같이결제 허용하기 (참여자) ── */}
+      {showApprove && <TogetherApprovePage onBack={() => setShowApprove(false)} />}
     </div>
   );
 }

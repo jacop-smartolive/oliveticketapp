@@ -63,6 +63,8 @@ import OldVersionPaymentHistoryPage from "./components/OldVersionPaymentHistoryP
 import OldVersionMyOlivePage from "./components/OldVersionMyOlivePage";
 import GiftPage from "./components/GiftPage";
 import RestaurantCafeTab from "./components/RestaurantCafeTab";
+import TogetherPaymentPage from "./components/TogetherPaymentPage";
+import SoloQrPopup from "./components/SoloQrPopup";
 
 // ─── Keyframes ───────────────────────────────────────────────
 const animationKeyframes = `
@@ -977,6 +979,10 @@ function AppContent() {
   const [pendingCartAdd, setPendingCartAdd] = useState<
     { item: SimpleMealData; quantity: number } | null
   >(null);
+  // 장바구니 → 같이결제 (메뉴모드)
+  const [showCartTogether, setShowCartTogether] = useState(false);
+  // 가맹점 혼자결제 QR 팝업
+  const [soloQr, setSoloQr] = useState<{ amount: number; storeNameKey: string } | null>(null);
 
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
@@ -1132,6 +1138,7 @@ function AppContent() {
   // 바로결제 (간편식·가맹점 공통)
   const handleDirectPay = useCallback((item: SimpleMealData, quantity: number) => {
     const priceNum = parseInt(item.price.replace(/,/g, ""), 10);
+    const amount = priceNum * quantity;
     setDirectPayItem({
       name: item.name,
       price: priceNum,
@@ -1139,8 +1146,13 @@ function AppContent() {
       img: item.img,
       pickupTime: formatMonthDayTime(item.pickupDate),
     });
-    setPaymentConfirmAmount(priceNum * quantity);
     setPaymentSource("detail");
+    // 가맹점 결제는 QR 결제 팝업, 간편식은 결제 확인 팝업
+    if ((item as any).sourceType === "restaurant") {
+      setSoloQr({ amount, storeNameKey: (item as any).storeKey || item.store });
+    } else {
+      setPaymentConfirmAmount(amount);
+    }
   }, []);
 
   const handleUpdateQuantity = useCallback((id: number, quantity: number) => {
@@ -2021,9 +2033,33 @@ function AppContent() {
               (sum, item) => sum + item.price * item.quantity,
               0
             );
-            setPaymentConfirmAmount(total);
             setPaymentSource("cart");
+            // 가맹점 장바구니는 QR 결제 팝업, 간편식은 결제 확인 팝업
+            if (cartItems[0]?.sourceType === "restaurant") {
+              setSoloQr({
+                amount: total,
+                storeNameKey: cartItems[0].storeKey || cartItems[0].store,
+              });
+            } else {
+              setPaymentConfirmAmount(total);
+            }
           }}
+          onTogetherPay={() => setShowCartTogether(true)}
+        />
+      )}
+
+      {/* ── 장바구니 → 같이결제 (메뉴모드) ── */}
+      {showCartTogether && cartItems.length > 0 && (
+        <TogetherPaymentPage
+          mode="menu"
+          storeNameKey={cartItems[0].storeKey || cartItems[0].store}
+          totalAmount={cartItems.reduce((sum, ci) => sum + ci.price * ci.quantity, 0)}
+          menu={cartItems.map((ci) => ({
+            label: ci.nameKey ? t(ci.nameKey) : ci.name,
+            price: ci.price,
+            qty: ci.quantity,
+          }))}
+          onBack={() => setShowCartTogether(false)}
         />
       )}
 
@@ -2048,6 +2084,24 @@ function AppContent() {
             const amount = paymentConfirmAmount;
             setPaymentConfirmAmount(null);
             setPaymentCompleteAmount(amount);
+          }}
+        />
+      )}
+
+      {/* ── 가맹점 혼자결제 QR 팝업 ── */}
+      {soloQr && (
+        <SoloQrPopup
+          amount={soloQr.amount}
+          storeNameKey={soloQr.storeNameKey}
+          onClose={() => {
+            setSoloQr(null);
+            setPaymentSource(null);
+            setDirectPayItem(null);
+          }}
+          onPay={() => {
+            const amt = soloQr.amount;
+            setSoloQr(null);
+            setPaymentCompleteAmount(amt);
           }}
         />
       )}
